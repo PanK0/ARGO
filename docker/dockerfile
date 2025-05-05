@@ -1,0 +1,38 @@
+# Use an official Golang runtime as a parent image
+FROM golang:1.21 AS builder
+
+# Set the working directory inside the container
+WORKDIR /app
+
+# Copy necessary files to the container
+COPY config/ config/
+COPY logs/ logs/
+COPY src/ src/
+
+# Build the Go application
+RUN cd src && go mod tidy && go build .
+
+# Use a minimal image for the final container
+FROM ubuntu:22.04
+
+# Set working directory
+WORKDIR /app
+
+# Install Python and pip
+RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
+
+# Copy the compiled binary from the builder stage
+COPY --from=builder /app/src/byzantine /app/src/byzantine
+
+# Copy config and logs directories from the builder stage
+COPY --from=builder /app/config/ /app/config/
+COPY --from=builder /app/logs/ /app/logs/
+
+# Install Python dependencies
+RUN pip3 install --no-cache-dir -r /app/logs/requirements.txt
+
+# Expose necessary ports (modify as needed)
+EXPOSE 4001 8080
+
+# Ensure the container runs interactively
+ENTRYPOINT ["/app/src/byzantine"]

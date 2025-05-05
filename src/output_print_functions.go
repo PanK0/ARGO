@@ -1,0 +1,295 @@
+package main
+
+import (
+	"encoding/json"
+	"fmt"
+	"log"
+
+	"github.com/libp2p/go-libp2p/core/host"
+)
+
+// Print shell newline
+func printShell() {
+	fmt.Printf("%s_> %s", color_info, RESET)
+}
+
+// Print an error in a fancy way
+func printError(err error) {
+	header := fmt.Sprintf("\n%s!!!!----- ERROR -----!!!!%s\n", RED, RESET)	
+	fmt.Println(header)
+	panic(err)
+}
+
+// Message to print when starting a node
+func printStartMessage(h host.Host) {
+	
+	header := fmt.Sprintf("\n%s------- HELP -------%s\n", color_info, RESET)
+	
+	c := fmt.Sprintf("%sCONNECT:%s \n%s	Connect another node with this node%s \n	-connect %s\n\n	%sConnect this node to its neighbours in the topology:%s \n	-connectall\n", color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT), color_info, RESET)
+	
+	i := fmt.Sprintf("%sINFO:%s \n%s	Show information about this node%s \n	-info\n", color_info, RESET, color_info, RESET)
+	
+	s := fmt.Sprintf("%sSEND:%s \n%s	Send a message MESSAGE from another node to this node%s \n	-send %s -msg \"MESSAGE\"\n", color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT))
+	
+	b := fmt.Sprintf("%sBROADCAST:%s \n%s	Send a broadcast with message MESSAGE from any node to this node%s \n	-broadcast %s -msg \"MESSAGE\"\n", color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT))
+	
+	de := fmt.Sprintf("%sDETECTOR:%s \n%s	Run detector protocol%s \n	-detector\n", color_info, RESET, color_info, RESET)
+
+	e := fmt.Sprintf("%sEXPLORER:%s \n%s	Run explorer protocol%s \n	-explorer\n", color_info, RESET, color_info, RESET)
+
+	e2 := fmt.Sprintf("%sEXPLORER 2:%s \n%s	Run explorer2 protocol%s \n	-exp2\n", color_info, RESET, color_info, RESET)
+
+	d := fmt.Sprintf("%sDELIVER:%s \n%s	Force the delivery of a single message with ID <MSG_ID> from this node%s \n	-deliver <MSG_ID>\n\n	%s Force the delivery of all messages from this node%s \n	-deliver ALL\n", color_info, RESET, color_info, RESET, color_info, RESET)
+	
+	sh := fmt.Sprintf("%sSHOW:%s \n%s	Show all the received messages from this node%s \n	-show RCV\n\n	%s Show all the delivered messages from this node%s \n	-show DEL\n", color_info, RESET, color_info, RESET, color_info, RESET)
+	
+	n := fmt.Sprintf("%sNETWORK:%s \n%s	Show network information about this node%s \n	-network\n", color_info, RESET, color_info, RESET)
+	
+	t := fmt.Sprintf("%sTOPOLOGY:%s \n%s	Show cTop (Confirmed Topology) information%s \n	-topology SHOW\n\n	%sShow both cTop and uTop information%s \n	-topology WHOLE\n\n	%sAcquire topology from network information %s\n	-topology ACQUIRE\n\n %s	Load cTop (Confirmed Topology) from default file topology.csv %s \n	-topology LOAD \n\n	%sChange node <NODE> in topology.csv with this node's address%s\n	-topology FORCE <NODE>\n", color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET)
+	
+	by := fmt.Sprintf("%sBYZANTINE:%s \n%s	Transform this node into a byzantine%s \n	-byzantine\n\n", color_info, RESET, color_info, RESET)
+
+	footer := fmt.Sprintf("%s--------------------%s\n", color_info, RESET)
+	
+	fmt.Printf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s", header, c, i, s, b, de, e, e2, d, sh, n, t, by, footer)
+	
+}
+
+
+// Print node information
+func printNodeInfo(h host.Host) {
+	fmt.Printf("\n%s##### NODE INFORMATION #####%s\n", CYAN, RESET)
+	fmt.Println("Node address:", getNodeAddress(h, ADDR_DEFAULT))//h.Addrs()[0])
+    fmt.Println("host.ID:", h.ID())
+	fmt.Println("Peers: ", h.Network().Peers())
+
+	fmt.Printf("\n%sThis node's multiaddresses:%s\n", CYAN, RESET)
+	fmt.Printf("	Loopback Address: %s\n", h.Addrs()[ADDR_LB_POS])
+	fmt.Printf("	LAN Address: %s\n", h.Addrs()[ADDR_LAN_POS])
+	
+	/*
+	// Print all multiaddresses
+	for i, la := range h.Addrs() {
+		fmt.Printf("	%d. %v\n",i, la)
+	}
+		*/
+
+	fmt.Printf("%s############################%s\n", CYAN, RESET)
+	fmt.Println()
+}
+
+
+// Function to print a message
+func printMessage(message string) {
+	
+	var msg Message
+	err := json.Unmarshal([]byte(message), &msg)
+	if err != nil {
+		printError(err)
+	}
+
+	msgtype := ""
+	color := ""
+	if msg.Type == TYPE_BROADCAST {
+		msgtype = TYPE_BROADCAST
+		color = MAGENTA
+	} else if msg.Type == TYPE_DIRECT_MSG {
+		msgtype = TYPE_DIRECT_MSG
+		color = YELLOW
+	} else if msg.Type == TYPE_EXPLORER2 {
+		msgtype = TYPE_EXPLORER2
+		color = GREY
+	}
+
+	header := fmt.Sprintf("\n%s----RECEIVED %s----%s\n", color, msgtype, RESET)
+	footer := fmt.Sprintf("%s--------------------------%s\n", color, RESET)
+
+	m := header
+	m += msgToString(msg)
+	m += fmt.Sprintf("%s\n", footer)
+	
+	log.Print(m)
+	printShell()
+}
+
+
+// Print all the opened streams of an host
+func printOpenedStream(h host.Host) {
+	header := fmt.Sprintf("\n%s####### NETWORK INFO #######%s\n", CYAN, RESET)
+	footer := fmt.Sprintf("\n%s############################%s\n", CYAN, RESET)
+	fmt.Print(header)
+	connections := h.Network().Conns()
+	for _, c := range connections {
+		streams := c.GetStreams()
+		for i, s := range streams {
+			fmt.Printf("%d - stream: %s, id: %s\n", i, s, s.ID())
+		}
+		
+	}
+	
+	fmt.Println(footer)
+}
+
+
+// Returns a list of all messages
+// !! CAREFUL !! : the messages here are NOT IN CHRONOLOGICAL ORDER, because MessageContainer is a dictionnary, not a list!
+func allMessages(messageContainer MessageContainer, mod string) string {
+	var mod_string string = ""
+	var color = ""
+	var color_msg_top = ""
+	var color_msg_bot = ""
+	switch mod {
+	case mod_show_del:
+		mod_string = "+ DELIVERED MESSAGES +"
+		color = BLUE_BG
+	case mod_show_rcv:
+		mod_string = "+ RECEIVED MESSAGES ++"
+		color = CYAN_BG
+	}
+
+
+	header := fmt.Sprintf("\n%s++++++++++++++++++++++++++++++++++++++++++++%s+++++++++++++++++++++++++++++++++++++%s\n", color, mod_string, RESET)
+	footer := fmt.Sprintf("%s+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++%s\n", color, RESET)
+	ret := ""
+	ret += header
+	
+	for k, messages := range messageContainer.messages {
+		
+		if messages[0].Type == TYPE_BROADCAST {
+			color_msg_top = MAGENTA_BG
+			color_msg_bot = MAGENTA
+		} else if messages[0].Type == TYPE_DIRECT_MSG {
+			color_msg_top = YELLOW_BG
+			color_msg_bot = YELLOW
+		} else if messages[0].Type == TYPE_DETECTOR {
+			color_msg_top = GREY_BG
+			color_msg_bot = WHITE
+		} else if messages[0].Type == TYPE_EXPLORER || messages[0].Type == TYPE_EXPLORER2 {
+			color_msg_top = GREY_BG
+			color_msg_bot = GREY
+		}
+
+
+		msg := ""
+		h := fmt.Sprintf("\n%s-ID: %s -%s", color_msg_top, k, RESET)
+		f := fmt.Sprintf("%s-----------------------------------------------%s\n", color_msg_bot, RESET)
+		
+		msg += h
+		for i, m := range messages {
+			msg += fmt.Sprintf("\n%s- %d -------------------%s\n", CYAN, i, RESET)
+			msg += msgToString(m)
+			msg += "\n"
+		}
+		msg += f
+		ret += msg
+	}
+	ret += footer
+	return ret
+}
+
+
+// Returns a string with full node address with NODE_PRINTLAST characters. WHOLE_ADDR to print the whole address
+func addressToPrint(address string, n_of_characters int) string {
+	if n_of_characters == -1 {
+		return address
+	}
+	if len(address) > n_of_characters {
+		return address[len(address)-n_of_characters:]
+	}
+	return address
+}
+
+
+// Print cTop (Confirmed Topology) information
+// cTop is a structure defined in topology.go
+func (top CTop) toString() string {
+	color_node := BLUE
+	color_neigh := CYAN
+
+	h := fmt.Sprintf("\n%s##### CONFIRMED TOPOLOGY #####%s\n", BLUE, RESET)
+	f := fmt.Sprintf("%s#############################%s\n", BLUE, RESET)
+	str := ""
+
+	str += h
+
+	for k, v := range top.tuples {
+		node_to_print := addressToPrint(k, NODE_PRINTLAST)
+		
+		str += fmt.Sprintf("%sNode: %s%s\n",color_node, RESET, node_to_print)
+		str += fmt.Sprintf("%s___Neighbourhood: %s\n", color_neigh, RESET)
+		for i, n := range v {
+			toprint := addressToPrint(n, NODE_PRINTLAST)
+			str += fmt.Sprintf("%s	%d -%s %s\n", color_neigh, i, RESET, toprint)
+		}
+	}
+
+	str += f
+
+	return str	
+}
+
+
+// Print UTop
+// uTop is a structure defined in topology.go
+func (utop UTop) toString() string {
+	color_node := BLUE
+	color_neigh := CYAN
+	color_visit	:= YELLOW
+	
+	h := fmt.Sprintf("\n%s#### UNCONFIRMED TOPOLOGY ####%s\n", MAGENTA, RESET)
+	f := fmt.Sprintf("%s#############################%s\n", MAGENTA, RESET)
+	str := ""
+
+	str += h
+
+
+	for k, v := range utop.tuples {
+		node_to_print := addressToPrint(k, NODE_PRINTLAST)
+
+		str += fmt.Sprintf("%sNode: %s%s\n", color_node, RESET, node_to_print)
+		str += fmt.Sprintf("%s___Neighbourhood: %s\n", color_neigh, RESET)
+		for i, n := range v[0] {
+			toprint := addressToPrint(n, NODE_PRINTLAST)
+			str += fmt.Sprintf("%s	%d -%s %s\n", color_neigh, i, RESET, toprint)
+		}
+
+		str += fmt.Sprintf("%s___Visited set: %s\n", color_visit, RESET)
+
+		for i, n := range v[1] {
+			toprint := addressToPrint(n, NODE_PRINTLAST)
+			str += fmt.Sprintf("%s	%d -%s %s\n", color_visit, i, RESET, toprint)
+		}
+	}
+
+	str += f
+	return str	
+}
+
+
+// PrintGraph prints the adjacency list of the graph
+func (g *Graph) PrintGraph() {
+    fmt.Println("Graph:")
+    for node, neighbors := range g.adjList {
+        // Get the last 5 characters of the node
+        nodeToPrint := addressToPrint(node, NODE_PRINTLAST)
+        // Print the node and its neighbors
+        fmt.Printf("%s -> [", nodeToPrint)
+        for i, neighbor := range neighbors {
+            // Get the last 5 characters of the neighbor
+            neighborToPrint := addressToPrint(neighbor, NODE_PRINTLAST)
+            if i > 0 {
+                fmt.Printf(", ")
+            }
+            fmt.Printf("%s", neighborToPrint)
+        }
+        fmt.Println("]")
+    }
+    fmt.Println()
+}
+
+// Print Byzantine Detection Alert
+func printByzantineAlert() {
+	alert := fmt.Sprintf("%s!!!!----- BYZANTINE BEHAVIOUR DETECTED -----!!!!%s\n", RED, RESET)
+	fmt.Println(alert)
+	printShell()
+}
