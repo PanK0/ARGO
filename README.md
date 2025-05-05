@@ -304,7 +304,7 @@ Their purpose is to reconstruct the network topology under certain conditions (d
 
 However, **EXPLORER** has been proven to be wrong (see more [here](http://antares.cs.kent.edu/~mikhail/Research/topology.errata.html)), and so it has to be replaced with **EXPLORER2**, described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
 
-These protocols imply the sending of some messages in the network. These messages are **NOT RECORDED** in the message container and **DO NOT USE** the described above broadcast communication primitive, but they implement their own broadcast.
+These protocols imply the sending of some messages in the network. These messages **DO NOT USE** the described above broadcast communication primitive, but they implement their own broadcast.
 
 Detector and Explorer can be invoked by running the ```-detector``` and/or ```-explorer``` commands.
 

@@ -96,4 +96,5 @@ const (
 	// Log constants
 	LOGDIR		= "../logs"
 	PRINTOPTION	= true
+
 )
