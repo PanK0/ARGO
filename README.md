@@ -1,6 +1,6 @@
 <p align="center">
   <img src="https://github.com/PanK0/ARGO/blob/main/pictures/ARGO.png?raw=true" alt="ARGO_logo"
-    width="40%">
+    width="30%">
 </p>
 
 
@@ -19,8 +19,9 @@ This software is mainly based on the following studies:
 ## Files description
 
 ### `config/`
-- `byzantine.config` : configuration file to simulate byzantine processes.
-- `topology.csv` : topology of the graph, given into a .csv file.
+- `byzantine.config`  : configuration file to simulate byzantine processes.
+- `topology.csv`      : topology of a 4 nodes graph, given into a .csv file.
+- `topology2.csv`     : topology of a 8 nodes graph, given into a .csv file.
 
 ### `docker/`
 - `dockerfile` : dockerfile to create an image of a node.
