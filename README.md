@@ -358,7 +358,7 @@ Alterations=neighbourhood
 
 
 # LOGS
-In `/logs/log_parser.py` are saved logs created by using `logEvent()` function in `utils.go`. You can basically write whatever you want in the logs. 
+In `/logs/` are saved logs created by using `logEvent()` function in `utils.go`. You can basically write whatever you want in the logs. 
 
 By inserting this function in the code, it is possible to create a *NODE_ADDRESS.log* file so that the wanted events are saved in the file.
 

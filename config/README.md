@@ -1,7 +1,7 @@
  
 <p align="center">
   <img src="https://github.com/PanK0/ARGO/blob/main/pictures/ARGO.png?raw=true" alt="ARGO_logo"
-    width="30%">
+    width="20%">
 </p>
 
 ## ARGO - Configuration files
