@@ -16,7 +16,7 @@ By calling the dedicated python script `log_parser.py` all the saved logs in the
 
 This is an example of the generated timeline after a bit of formatting and coloring:
 
-![Timeline](https://github.com/PanK0/ARGO/blob/main/pictures/timeline.png?raw=true)
+![Timeline](https://github.com/PanK0/ARGO/blob/main/pictures/timeline.jpeg?raw=true)
 
 ### Make log_parser.py work
 
