@@ -1,4 +1,4 @@
-module byzantine
+module argo
 
 go 1.20
 

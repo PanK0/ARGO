@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/PanK0/ARGO/main/pictures/ARGO.png?raw=true" alt="ARGO_logo">
+  <img src="https://github.com/PanK0/ARGO/blob/main/pictures/ARGO.png?raw=true" alt="ARGO_logo">
 </p>
 
 
@@ -51,11 +51,13 @@ This software is mainly based on the following studies:
 ### File config/topology.csv
 In this file it is possible to give a naive representation of a graph.
 
-This file can be used when dealing with a **known topology** a priori, I.E. when it is required that each node know every other node in the network within its neighbourhood.
+This file can be used when dealing with a **known topology** a priori, I.E. when it is required that each node knows every other node in the network within its neighbourhood, or either to easily set up a netwrok that is known for the programmer, but can stay unknown for the nodes.
 
-Nodes can force their address into the *topology.csv* file: this operation will change A letter in the file with the node's address (**FORCE TOPOLOGY**, see later).
+Nodes can force their address into the *topology.csv* file: this operation will change a letter in the file with the node's address (**FORCE TOPOLOGY**, see later).
 
-![topology.csv](https://github.com/PanK0/go_libp2p/blob/main/pictures/09_delivery_topology.png?raw=true)
+The location of the *topology.csv* file is saved in a dedicated constant in *constants.go* file.
+
+![topology.csv](https://github.com/PanK0/ARGO/blob/main/pictures/topology.png?raw=true)
 
 
 ### Script src/open_nodes.py
@@ -63,7 +65,7 @@ With this script it is possible to open nodes in groups, instead of opening them
 
 The script opens the specified number of nodes.
 
-It also offers the possibility to simoultaneusly open multiple nodes AND make the nodes substitute their address with a letter in the file *topology.csv* (This action is called **FORCE TOPOLOGY**), so that, once the *topology.csv* file will be filled with addresses instead of letters, nodes can load the complete topology inside their internal structure (**LOAD TOPOLOGY** action).
+It also offers the possibility to simoultaneusly open multiple nodes AND make the nodes substitute their address with a letter in the file *topology.csv* (This action is called **FORCE TOPOLOGY**), so that, once the *topology.csv* file will be filled with addresses instead of letters, nodes can load the complete topology (or only their neighbourhood) inside their internal structure (**LOAD TOPOLOGY** action).
 
 FORCE action also include LOAD action, while LOAD action doesn't affect the *topology.csv* file.
 
@@ -72,9 +74,9 @@ To do so, inside the script is present an array that **MUST CONTAIN ALL THE EXAC
 # BUILDING and STARTING the system
 
 ## Build
-Go in the `10_byzantine/src` folder.
+Go in the `ARGO/src` folder.
 
-Run the following:
+To generate the **argo** executable, run the following:
 
 ```
 > go build
@@ -100,7 +102,7 @@ Once a node starts, some instructions are suggested and node's information is pr
 
 This view can be called again with the ```-help``` command.
 
-![commands](https://github.com/PanK0/go_libp2p/blob/main/pictures/10_byzantine_commands.png?raw=true)
+![commands](https://github.com/PanK0/ARGO/blob/main/pictures/commands.png?raw=true)
 
 
 ### NODE-BY-NODE mode
@@ -108,7 +110,7 @@ Open nodes manually, by starting node by node
 To simply run a node, open a terminal and run
 
 ```
-> ./byzantine
+> ./argo
 ```
 
 It is possible to run multiple nodes.
@@ -121,7 +123,7 @@ This procedure is the same as running a node and then giving the ```-topology FO
 For example, to run a node in automatic mode and FORCE its address in the topology.csv file replacing it with all 'A' occurrencies:
 
 ```
-> ./byzantine -m auto -n A
+> ./argo -m auto -n A
 ```
 
 After applying the changes in the *topology.csv* file, neighbourhood is loaded on the node's internal structure. However the loaded neighbourhood may be composed by a mix of node addresses and single letters: this means that not all nodes have forced their topology yet, so it may be required to LOAD again the topology, maybe when the last node forced its address, by using the command ```-topology LOAD```.
@@ -138,7 +140,7 @@ The script will accept as arguments <number_of_terminals> and <name_of_the_execu
 For example, to open three nodes run:
 
 ```
-> python3 open_nodes.py 3 ./byzantine
+> python3 open_nodes.py 3 ./argo
 ```
 
 ### GROUP-BY-AUTO mode: run multiple nodes with automatic topology FORCE
@@ -152,7 +154,7 @@ To do so, inside the script *open_nodes.py* is present an array that **MUST CONT
 For example, to run four nodes and make them automatically FORCE their address into the *topology.csv* file:
 
 ```
-> python3 open_nodes.py 4 ./byzantine auto
+> python3 open_nodes.py 4 ./argo auto
 ```
 
 After applying the changes in the *topology.csv* file, neighbourhood is loaded on the node's internal structure. However the loaded topology may be composed by a mix of node addresses and single letters: this means that not all nodes have forced their topology yet, so it may be required to LOAD again the topology, maybe when the last node forced its address, by using the command ```-topology LOAD```.
@@ -170,19 +172,19 @@ Open a node (or multiple nodes) and connect them to the master address.
 To open one node and connect to the master:
 
 ```
-> ./byzantine -d MASTER_ADDRESS
+> ./argo -d MASTER_ADDRESS
 ```
 
 To open three nodes and connect to the master:
 
 ```
-> python3 open_nodes.py 3 ./byzantine -d MASTER_ADDRESS
+> python3 open_nodes.py 3 ./argo -d MASTER_ADDRESS
 ```
 
 It also work in automatic mode (omit the -d):
 
 ```
-> python3 open_nodes.py 8 ./byzantine auto MASTER_ADDRESS
+> python3 open_nodes.py 8 ./argo auto MASTER_ADDRESS
 ```
 
 ## CONNECT 
@@ -261,14 +263,15 @@ Change node <NODE> in topology.csv with this node's address:
 Messages are identified by their type. Types are:
 - DIRECTMSG = Direct message
 - BROADCAST = Broadcast message
-- DETECTOR = Detector message
-- EXPLORER = explorer message
+- DETECTOR  = Detector message
+- EXPLORER  = Explorer message
+- EXPLORER2 = Explorer2 message
 
 Once received, messages are placed in a dedicated message container, that is an internal structure of a node. They can also be **DELIVERED** and so moved in another message container for delivered messages. 
 
 Delivery can be performed by invoking the dedicated ```-deliver <FLAG>``` command (More information by running the *-help* command).
 
-![Message Container](https://github.com/PanK0/go_libp2p/blob/main/pictures/10_byzantine_messagecontainer.jpeg?raw=true)
+![Message Container](https://github.com/PanK0/ARGO/blob/main/pictures/messagecontainer.jpeg?raw=true)
 
 ### Send a direct message 
 To send a message MESSAGE from node A to node B:
@@ -289,7 +292,7 @@ Run this command into any node that is different from A and it will send the mes
 
 Once a node X receives a broadcast message, it forwards it to any node that is not in the path.
 
-![Broadcast example](https://github.com/PanK0/go_libp2p/blob/main/pictures/06_naive_broadcast_example.png?raw=true)
+![Broadcast example](https://github.com/PanK0/ARGO/blob/main/pictures/naive_broadcast_example.png?raw=true)
 
 
 ### Run DETECTOR and EXPLORER protocols
@@ -325,7 +328,7 @@ Byzantines can be of 3 types:
 - Type 2: a process that drops the messages with a certain rate and doesn't relay
 - Type 3: a process that alters information
 
-It is possible to make a node byzantine by giving the proper command on the node. The interface will turn red in to better identify the byzantine:
+It is possible to make a node byzantine by giving the proper command on the node. The interface will turn red to better identify the byzantine:
 
 ```
 > -byzantine
@@ -343,13 +346,13 @@ Type2=false
 Type3=false
 Delay=500
 DropRate=0.3
-Alterations=Change message content randomly
+Alterations=neighbourhood
 ```
 
 - Type1, Type2 and Type3 entries are trivial: they accept a boolean value true/false
 - Delay: accepts an int that indicates the number of milliseconds of delay to introduce in a Type1 byzantine
 - DropRate: accepts a float r, with 0 < r < 1, that indicates the probability to drop a message in a Type2 byzantine
-- Alterations: accepts a string. **TO DO**: for now it is not supported
+- Alterations: accepts a string, that may be `neighbourhood` or `path`. This randomly alterates the content of the specified field of the message by deleting an element.
 
 
 # LOGS
@@ -357,7 +360,7 @@ In `/logs/log_parser.py` are saved logs created by using `logEvent()` function i
 
 By inserting this function in the code, it is possible to create a *NODE_ADDRESS.log* file so that the wanted events are saved in the file.
 
-By calling the dedicated python script `log_parser.py` all the saved logs in the directory are put into an excel file that represents a timeline of the recorded events: after formatting the file, with low effort it can be a nice resource to have a clear view of what happens in the whole system, and it is very useful especially when testing the network on a local machine.
+By calling the dedicated python script `log_parser.py` all the saved logs in the directory are put into an excel file that represents a timeline of the recorded events: **after formatting the file**, with low effort it can be a nice resource to have a clear view of what happens in the whole system, and it is very useful especially when testing the network on a local machine.
 
 Install the requirements with 
 
@@ -379,18 +382,18 @@ To clear all the generated files, run:
 
 This is an example of the generated timeline after a bit of formatting and coloring:
 
-![Timeline](https://github.com/PanK0/go_libp2p/blob/main/pictures/10_byzantine_timeline.png?raw=true)
+![Timeline](https://github.com/PanK0/ARGO/blob/main/pictures/timeline.png?raw=true)
 
 **TO DO** : this mechanism could be refined, but for now it works
 
 # DOCKER SETTINGS
-**!!! WARNING** : when using docker, the whole network must be run manually, i.e. no automatic mode is available.
+**!!! WARNING** : when using docker, the whole network must be run manually, i.e. no automatic mode is available: this is because each docker image is the image of a single node. Thus, nodes don't share the *topology.csv* file.
 
 ## Build the image
 Build the docker image. From the main folder:
 
 ```
-> docker build -t byzantine -f docker/Dockerfile .
+> docker build -t argo -f docker/Dockerfile .
 ```
 
 The command builds a docker image named *byzantine* by using the dockerfile in folder *docker/*.
@@ -399,7 +402,7 @@ The command builds a docker image named *byzantine* by using the dockerfile in f
 Run the docker container (one for each node):
 
 ```
-> docker run -dit --rm --name nodeA byzantine 
+> docker run -dit --rm --name nodeA argo 
 ```
 
 Where: 
@@ -408,7 +411,7 @@ Where:
 - *-t* allocates a pseudo-TTY for the container
 - *--rm* removes the container after it stops
 - *--name nodeA* names the running container as 'nodeA'
-- *byzantine* is the image for which to create a container
+- *argo* is the image for which to create a container
 
 ## Access the container's shell
 By accessing the container's shell it is possible to run the node.
@@ -421,7 +424,7 @@ Then navigate into the proper folder and run the executable:
 
 ```
 dockerbash> cd src
-dockerbash> ./byzantine
+dockerbash> ./argo
 ```
 
 To exit, type:

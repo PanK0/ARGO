@@ -22,7 +22,7 @@ WORKDIR /app
 RUN apt-get update && apt-get install -y python3 python3-pip && rm -rf /var/lib/apt/lists/*
 
 # Copy the compiled binary from the builder stage
-COPY --from=builder /app/src/byzantine /app/src/byzantine
+COPY --from=builder /app/src/argo /app/src/argo
 
 # Copy config and logs directories from the builder stage
 COPY --from=builder /app/config/ /app/config/
@@ -35,4 +35,4 @@ RUN pip3 install --no-cache-dir -r /app/logs/requirements.txt
 EXPOSE 4001 8080
 
 # Ensure the container runs interactively
-ENTRYPOINT ["/app/src/byzantine"]
+ENTRYPOINT ["/app/src/argo"]
