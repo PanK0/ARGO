@@ -21,38 +21,247 @@ func printError(err error) {
 }
 
 // Message to print when starting a node
-func printStartMessage(h host.Host) {
-	
-	header := fmt.Sprintf("\n%s------- HELP -------%s\n", color_info, RESET)
-	
-	c := fmt.Sprintf("%sCONNECT:%s \n%s	Connect another node with this node%s \n	-connect %s\n\n	%sConnect this node to its neighbours in the topology:%s \n	-connectall\n", color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT), color_info, RESET)
-	
-	i := fmt.Sprintf("%sINFO:%s \n%s	Show information about this node%s \n	-info\n", color_info, RESET, color_info, RESET)
-	
-	s := fmt.Sprintf("%sSEND:%s \n%s	Send a message MESSAGE from another node to this node%s \n	-send %s -msg \"MESSAGE\"\n", color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT))
-	
-	b := fmt.Sprintf("%sBROADCAST:%s \n%s	Send a broadcast with message MESSAGE from any node to this node%s \n	-broadcast %s -msg \"MESSAGE\"\n", color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT))
-	
-	de := fmt.Sprintf("%sDETECTOR:%s \n%s	Run detector protocol%s \n	-detector\n", color_info, RESET, color_info, RESET)
+func printStartMessage(h host.Host, help_mod string) {
 
-	e := fmt.Sprintf("%sEXPLORER:%s \n%s	Run explorer protocol%s \n	-explorer\n", color_info, RESET, color_info, RESET)
+	if help_mod == mod_help_def {
+		header := fmt.Sprintf("\n%s------- HELP -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s--------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp_node()
+		printHelp_ProtocolInfo(h)
+		printHelp_MessagesInfo()
+		printHelp_NetworkInfo()
+		printHelp()
+		fmt.Printf("%s", footer)
 
-	e2 := fmt.Sprintf("%sEXPLORER 2:%s \n%s	Run explorer2 protocol%s \n	-exp2\n", color_info, RESET, color_info, RESET)
+	} else if help_mod == mod_help_msg {
+		header := fmt.Sprintf("\n%s------- MESSAGES -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s-------------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp_MessagesInfo()
+		fmt.Printf("%s", footer)
 
-	d := fmt.Sprintf("%sDELIVER:%s \n%s	Force the delivery of a single message with ID <MSG_ID> from this node%s \n	-deliver <MSG_ID>\n\n	%s Force the delivery of all messages from this node%s \n	-deliver ALL\n", color_info, RESET, color_info, RESET, color_info, RESET)
-	
-	sh := fmt.Sprintf("%sSHOW:%s \n%s	Show all the received messages from this node%s \n	-show RCV\n\n	%s Show all the delivered messages from this node%s \n	-show DEL\n", color_info, RESET, color_info, RESET, color_info, RESET)
-	
-	n := fmt.Sprintf("%sNETWORK:%s \n%s	Show network information about this node%s \n	-network\n", color_info, RESET, color_info, RESET)
-	
-	t := fmt.Sprintf("%sTOPOLOGY:%s \n%s	Show cTop (Confirmed Topology) information%s \n	-topology SHOW\n\n	%sShow both cTop and uTop information%s \n	-topology WHOLE\n\n	%sAcquire topology from network information %s\n	-topology ACQUIRE\n\n %s	Load cTop (Confirmed Topology) from default file topology.csv %s \n	-topology LOAD \n\n	%sChange node <NODE> in topology.csv with this node's address%s\n	-topology FORCE <NODE>\n", color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET)
-	
-	by := fmt.Sprintf("%sBYZANTINE:%s \n%s	Transform this node into a byzantine%s \n	-byzantine\n\n", color_info, RESET, color_info, RESET)
+	} else if help_mod == mod_help_net {
+		header := fmt.Sprintf("\n%s------- NETWORK -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s------------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp_NetworkInfo()
+		fmt.Printf("%s", footer)
 
-	footer := fmt.Sprintf("%s--------------------%s\n", color_info, RESET)
-	
-	fmt.Printf("%s%s%s%s%s%s%s%s%s%s%s%s%s%s", header, c, i, s, b, de, e, e2, d, sh, n, t, by, footer)
-	
+	} else if help_mod == mod_help_node {
+		header := fmt.Sprintf("\n%s------- NODE -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s---------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp_node()
+		fmt.Printf("%s", footer)
+
+	} else if help_mod == mod_help_prot {
+		header := fmt.Sprintf("\n%s------- PROTOCOLS -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s--------------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp_ProtocolInfo(h)
+		fmt.Printf("%s", footer)
+
+	} else if help_mod == mod_help_help {
+		header := fmt.Sprintf("\n%s------- HELP -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s---------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp()
+		fmt.Printf("%s", footer)
+
+
+	} else {
+
+	}
+
+}
+
+// Print help related information
+func printHelp() {
+
+	help := fmt.Sprintf(
+		"%sHELP: %s \n" +
+		"\t%sPrint general help panel%s \n" +
+		"\t-help \n\n" +
+		"\t%sPrint node help panel%s \n" +
+		"\t-help NODE \n\n" +
+		"\t%sPrint protocols help panel%s \n" +
+		"\t-help PROTOCOLS \n\n" +
+		"\t%sPrint messages help panel%s \n" +
+		"\t-help MSG \n\n" +
+		"\t%sPrint network help panel%s \n" +
+		"\t-help NETWORK \n\n" +
+		"\t%sPrint help list help panel%s \n" +
+		"\t-help HELP \n",
+		color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET,
+		color_info, RESET, color_info, RESET, color_info, RESET,
+	)
+
+	fmt.Printf("%s", help)
+}
+
+// Print node related information
+func printHelp_node() {
+
+	info := fmt.Sprintf(
+		"%sINFO: %s \n" +
+		"\t%sShow information about this node%s \n" +
+		"\t-info \n",
+		color_info, RESET, color_info, RESET,
+	)
+
+	byzantine := fmt.Sprintf(
+		"%sBYZANTINE: %s \n" +
+		"\t%sTurn this node into a byzantine%s \n" +
+		"\t-byzantine \n",
+		color_info, RESET, color_info, RESET,
+	)
+
+	fmt.Printf("%s", info)
+	fmt.Printf("%s", byzantine)
+
+}
+
+// Print protocols related information
+func printHelp_ProtocolInfo(h host.Host) {
+
+	connect := fmt.Sprintf(
+		"%sCONNECT:%s \n" +
+		"\t%sConnect another node with this node%s \n" +
+		"\t-connect %s \n\n" +
+		"\t%sConnect this node to its neighbours in the topology%s \n" +
+		"\t-connectall \n",
+		color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT), color_info, RESET,
+	)
+
+	connect_desc := fmt.Sprintf(
+		"\n\t%sRemember to connect nodes before running any protocol!%s \n",
+		color_desc, RESET,
+	)
+
+	send := fmt.Sprintf(
+		"%sSEND:%s	\n" + 
+		"\t%sSend a message MESSAGE from another node to this node%s \n" +
+		"\t-send %s -msg \"MESSAGE\" \n",
+		color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT),
+	)
+
+	bcast := fmt.Sprintf(
+		"%sBROADCAST:%s \n" +
+		"\t%sSend a broadcast with message MESSAGE from any node to this node%s \n" +
+		"\t-broadcast %s -msg \"MESSAGE\"\n",
+		color_info, RESET, color_info, RESET, getNodeAddress(h, ADDR_DEFAULT),
+	)
+
+	detector := fmt.Sprintf(
+		"%sDETECTOR:%s \n" +
+		"\t%sRun detector protocol%s \n" +
+		"\t-detector \n",
+		color_info, RESET, color_info, RESET,
+	)
+
+	explorer := fmt.Sprintf(
+		"%sEXPLORER:%s \n" +
+		"\t%sRun explorer protocol%s \n" +
+		"\t-explorer \n",
+		color_info, RESET, color_info, RESET,
+	)
+
+	explorer_desc := fmt.Sprintf( 
+		"\t%sWARNING: this protocol has been proven to not work%s \n",
+		color_desc, RESET,
+	)
+
+	explorer2 := fmt.Sprintf(
+		"%sEXPLORER2:%s \n" +
+		"\t%sRun explorer2 protocol%s \n" +
+		"\t-exp2 \n",
+		color_info, RESET, color_info, RESET,
+	)
+
+	fmt.Printf("%s", connect)
+	fmt.Printf("%s", connect_desc)
+	fmt.Printf("%s", send)
+	fmt.Printf("%s", bcast)
+	fmt.Printf("%s", detector)
+	fmt.Printf("%s", explorer)
+	fmt.Printf("%s", explorer_desc)
+	fmt.Printf("%s", explorer2)
+}
+
+// Print messages related information
+func printHelp_MessagesInfo() {
+
+	deliver := fmt.Sprintf(
+		"%sDELIVER:%s \n" +
+		"\t%sForce the delivery of a single message with ID <MSG_ID> from this node %s \n" +
+		"\t-deliver <MSG_ID> \n\n" +
+		"\t%sForce the delivery of all messages from this node %s \n" +
+		"\t-deliver ALL \n",
+		color_info, RESET, color_info, RESET, color_info, RESET,
+	)
+
+	deliver_desc := fmt.Sprintf(
+		"\n\t%sThese delivery modes are performed using disjoint paths and \n\tmay conflict with the correctness of Explorer2 protocol%s \n",
+		color_desc, RESET,
+	)
+
+	show := fmt.Sprintf(
+		"%sSHOW:%s \n" +
+		"\t%sShow all the received messages from this node %s \n" +
+		"\t-show RCV \n\n" +
+		"\t%sShow all the delivered messages from this node %s \n" +
+		"\t-show DEL \n",
+		color_info, RESET, color_info, RESET, color_info, RESET,
+	)
+
+	fmt.Printf("%s", deliver)
+	fmt.Printf("%s", deliver_desc)
+	fmt.Printf("%s", show)
+}
+
+// Print network and topology information
+func printHelp_NetworkInfo() {
+
+	network := fmt.Sprintf(
+		"%sNETWORK:%s \n" +
+		"\t%sShow network information about this node%s \n" +
+		"\t-network \n",
+		color_info, RESET, color_info, RESET,
+	)
+
+	topology := fmt.Sprintf(
+		"%sTOPOLOGY: %s \n" +
+		"\t%sShow cTop (Confirmed Topology)%s \n" +
+		"\t-topology SHOW \n\n" +
+		"\t%sShow both cTop and uTop%s \n" +
+		"\t-toplogy WHOLE \n\n" +
+		"\t%sAcquire topology from network information%s \n" +
+		"\t-topology ACQUIRE \n\n" +
+		"\t%sLoad cTop from configuration files%s \n" +
+		"\t-topology LOAD \n\n" +
+		"\t%sChange <NODE> in default topology file with this node's address%s \n" +
+		"\t-topology FORCE <NODE>\n",
+		color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET,
+	)
+
+	graph := fmt.Sprintf(
+		"%sGRAPH: %s\n" +
+		"\t%sBuild a graph based on topology information and byzantine constraints%s \n" +
+		"\t-graph",
+		color_info, RESET, color_info, RESET,
+	)
+
+	graph_desc := fmt.Sprintf(
+		"\n\t%sThis command should be used in combination with Explorer2 protocol%s \n",
+		color_desc, RESET,
+	)
+
+	fmt.Printf("%s", network)
+	fmt.Printf("%s", topology)
+	fmt.Printf("%s", graph)
+	fmt.Printf("%s", graph_desc)
+
 }
 
 

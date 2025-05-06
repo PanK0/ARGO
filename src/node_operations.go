@@ -133,7 +133,7 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 		}
 	})
 
-	printStartMessage(h)
+	printStartMessage(h, mod_help_prot)
 	printNodeInfo(h)
 }
 
@@ -207,7 +207,7 @@ func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *M
 	topology_graph := LoadGraphFromCSV(topology_path)
 	topology.ctop.loadNeigh(topology_graph, getNodeAddress(h, ADDR_DEFAULT))
 
-	printStartMessage(h)
+	printStartMessage(h, mod_help_prot)
 	printNodeInfo(h)
 }
 

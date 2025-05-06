@@ -2,6 +2,7 @@ package main
 
 var master_address string = ""
 var color_info = GREEN
+var color_desc = CYAN
 var byzantine_status = false
 
 const (
@@ -60,6 +61,12 @@ const (
 	mst_connectall	= "CONNECTALL"
 	
 	// Mode in which some commands are called
+	mod_help_def	= "DEFAULT"
+	mod_help_help	= "HELP"
+	mod_help_node	= "NODE"
+	mod_help_prot	= "PROTOCOLS"
+	mod_help_msg	= "MSG"
+	mod_help_net	= "NETWORK"
 	mod_show_del	= "DEL"
 	mod_show_rcv	= "RCV"
 	mod_deliver_all	= "ALL"
@@ -69,6 +76,7 @@ const (
 	mod_top_load	= "LOAD"
 	mod_top_neigh	= "NEIGH"
 	mod_top_force	= "FORCE"
+	
 	
 	start_automatic	= "auto"			// Start the network automatically
 	topology_path 	= "../config/topology2.csv"	// Path to the topology file
@@ -96,5 +104,5 @@ const (
 	// Log constants
 	LOGDIR		= "../logs"
 	PRINTOPTION	= true
-
+	
 )

@@ -30,9 +30,15 @@ func manageConsoleInput(ctx context.Context, h host.Host, messageContainer *Mess
 		inputData_words := strings.Fields(inputData)
 
 		// Print help panel
-		command, _ := findElement(inputData_words, cmd_help)
+		command, idx := findElement(inputData_words, cmd_help) 
 		if command == cmd_help {
-			printStartMessage(h)
+			// Print full help panel
+			if len(inputData_words) == 1 {
+				printStartMessage(h, mod_help_def)
+			// Print relative help panel
+			} else if len(inputData_words) == 2 {
+				printStartMessage(h, inputData_words[idx+1])
+			}
 		}
 
 		// Print node information
@@ -42,7 +48,7 @@ func manageConsoleInput(ctx context.Context, h host.Host, messageContainer *Mess
 		} 
 
 		// Connect to a node
-		command, idx := findElement(inputData_words, cmd_connect)
+		command, idx = findElement(inputData_words, cmd_connect)
 		if command == cmd_connect {
 			dest := inputData_words[idx+1]
 			connectNodes(ctx, h, dest, topology)
