@@ -102,7 +102,9 @@ If for some reason (for example, all nodes run on the same machine and there is 
 
 Once a node starts, some instructions are suggested and node's information is printed.
 
-This view can be called again with the ```-help``` command.
+To call a more complete view with all the available commands type `-help` on the shell.
+
+This view can be called again with the ```-help PROTOCOLS``` command.
 
 ![commands](https://github.com/PanK0/ARGO/blob/main/pictures/commands.png?raw=true)
 
