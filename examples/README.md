@@ -25,10 +25,10 @@ For more specific information, visit the single examples.
 
 The system can be started in various ways:
 
-- NODE-BY-NODE:     manually, by starting node by node 
-- GROUP-START:    	via script *open_nodes.py* by opening the wanted number of nodes
-- AUTO-START:   	via script *open_nodes.py* by opening the wanted number of nodes AND automatically force the topology from the *topology.csv* file
-- MASTER-SLAVE:     manually or via script *open_nodes.py*, by passing ```-d "MASTER_ADDRESS"``` as argument
+- [NODE-BY-NODE](https://github.com/PanK0/ARGO/blob/main/examples/01_NODE-BY-NODE.md):     manually, by starting node by node 
+- [GROUP-START](https://github.com/PanK0/ARGO/blob/main/examples/02_GROUP-START.md):    	via script *open_nodes.py* by opening the wanted number of nodes
+- [AUTO-START](https://github.com/PanK0/ARGO/blob/main/examples/03_AUTO-START.md):   	via script *open_nodes.py* by opening the wanted number of nodes AND automatically force the topology from the *topology.csv* file
+- [MASTER-SLAVE](https://github.com/PanK0/ARGO/blob/main/examples/04_MASTER-SLAVE.md):     manually or via script *open_nodes.py*, by passing ```-d "MASTER_ADDRESS"``` as argument
 
 When a node is opened, an multiaddress with a random ID is assigned for the node.
 
@@ -45,7 +45,7 @@ This view can be called again with the ```-help PROTOCOLS``` command.
 
 ![commands](https://github.com/PanK0/ARGO/blob/main/pictures/commands.png?raw=true)
 
-### NODE-BY-NODE mode
+### NODE-BY-NODE mode - [EXAMPLE]((https://github.com/PanK0/ARGO/blob/main/examples/01_NODE-BY-NODE.md))
 Open nodes manually, by starting node by node
 To simply run a node, open a terminal and run
 
@@ -55,7 +55,7 @@ To simply run a node, open a terminal and run
 
 It is possible to run multiple nodes.
 
-### NODE-BY-AUTO mode
+### NODE-BY-NODE with topology forcing
 Open node by node, one per time, and modify neighbourhood information contained in *topology.csv* file with the node's address.
 
 This procedure is the same as running a node and then giving the ```-topology FORCE <NODE>``` command: basically the opened node substitutes its node adrress to the correspondant letter in the *topology.csv* file.
@@ -72,7 +72,7 @@ After applying the changes in the *topology.csv* file, neighbourhood is loaded o
 
 **!!! WARNING**: *topology.csv* file will be permanently modified after each FORCE action such that nodes addresses will replace the letters indicating generic nodes. This means that to perform again a FORCE operation, the *topology.csv* file must be restored to its original state, with letters instead of addresses. Take into account that node addresses are randomically generated when a node is started, so it is very unlikely that two nodes in a certain time of this universe's life will have the same address.
 
-### GROUP-BY-NODE mode: run multiple nodes with the dedicated script
+### GROUP-START mode: run multiple nodes with the dedicated script - [EXAMPLE](https://github.com/PanK0/ARGO/blob/main/examples/02_GROUP-START.md)
 Open the console in the same directory of the script `open_nodes.py`. 
 
 The script will accept as arguments <number_of_terminals> and <name_of_the_executable>, in this order.
@@ -83,7 +83,7 @@ For example, to open three nodes run:
 > python3 open_nodes.py 3 ./argo
 ```
 
-### GROUP-BY-AUTO mode: run multiple nodes with automatic topology FORCE
+### AUTO-START mode: run multiple nodes with automatic topology FORCE - [EXAMPLE](https://github.com/PanK0/ARGO/blob/main/examples/03_AUTO-START.md)
 
 Open multiple nodes and make them modify topology information contained in *topology.csv* file with the node's address.
 
@@ -104,7 +104,7 @@ After applying the changes in the *topology.csv* file, neighbourhood is loaded o
 **!!! WARNING**: *topology.csv* file will be permanently modified after each FORCE action such that nodes addresses will replace the letters indicating generic nodes. This means that to perform again a FORCE operation, the *topology.csv* file must be restored to its original state, with letters instead of addresses. Take into account that node addresses are randomically generated when a node is started, so it is very unlikely that two nodes in a certain time of this universe's life will have the same address.
 
 
-### MASTER-SLAVE
+### MASTER-SLAVE - [EXAMPLE](https://github.com/PanK0/ARGO/blob/main/examples/04_MASTER-SLAVE.md)
 Open a node (or multiple nodes) and connect them to the master address.
 
 **!!! WARNING: MASTER NODE** is invisible to the topology. However it may be affected by protocol message exchanges if not closed before starting the experiments.
