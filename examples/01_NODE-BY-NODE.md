@@ -13,11 +13,18 @@ In this example, nodes are opened one by one on the same machine.
 
 Once nodes are running, they gain their own unique address.
 
-Then, it is shown how to **connect** nodes, how to **acquire topology** information and how to **send a direct message**.
+The example consists in:
+
+- **connecting** nodes
+- **topology acquisition**
+- **send a direct message** between two nodes
 
 ### Start the nodes
 
+Locate in the `ARGO/src` folder.
+
 Open nodes manually, by starting node by node.
+
 To simply run a node, open a terminal and run
 
 ```
