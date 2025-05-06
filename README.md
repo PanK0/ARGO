@@ -26,6 +26,9 @@ This software is mainly based on the following studies:
 ### `docker/`
 - `dockerfile` : dockerfile to create an image of a node.
 
+### `examples/`
+Directory in which are presented some examples on how to start a network
+
 ### `logs/`
 - `log_parser.py` : script to create a table of events of a node.
 - `requirements.txt` : requirements for the `log_parser.py` script.
