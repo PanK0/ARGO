@@ -26,9 +26,8 @@ For more specific information, visit the single examples.
 The system can be started in various ways:
 
 - NODE-BY-NODE:     manually, by starting node by node 
-- NODE-BY-AUTO:     manually with automatic topology load: start every node one by one and replace its address with the correspondant letter in the *topology.csv* file
-- GROUP-BY-NODE:    via script *open_nodes.py* by opening the wanted number of nodes
-- GROUP-BY-AUTO:    via script *open_nodes.py* by opening the wanted number of nodes AND automatically force the topology from the *topology.csv* file
+- GROUP-START:    	via script *open_nodes.py* by opening the wanted number of nodes
+- AUTO-START:   	via script *open_nodes.py* by opening the wanted number of nodes AND automatically force the topology from the *topology.csv* file
 - MASTER-SLAVE:     manually or via script *open_nodes.py*, by passing ```-d "MASTER_ADDRESS"``` as argument
 
 When a node is opened, an multiaddress with a random ID is assigned for the node.

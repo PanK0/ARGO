@@ -28,7 +28,6 @@ The file appears to be shaped like this, representing a graph as an adjaciency l
 ![topology.csv](https://github.com/PanK0/ARGO/blob/main/pictures/topology.png?raw=true)
 
 
-
 ### Start the nodes
 
 First of all, be sure that the *open_nodes.py* script and the *topology.csv* file are aligned.
