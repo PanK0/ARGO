@@ -45,7 +45,7 @@ This view can be called again with the ```-help PROTOCOLS``` command.
 
 ![commands](https://github.com/PanK0/ARGO/blob/main/pictures/commands.png?raw=true)
 
-### NODE-BY-NODE mode - [EXAMPLE]((https://github.com/PanK0/ARGO/blob/main/examples/01_NODE-BY-NODE.md))
+### NODE-BY-NODE mode - [EXAMPLE](https://github.com/PanK0/ARGO/blob/main/examples/01_NODE-BY-NODE.md)
 Open nodes manually, by starting node by node
 To simply run a node, open a terminal and run
 

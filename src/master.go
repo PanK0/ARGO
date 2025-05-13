@@ -38,6 +38,8 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		fmt.Println(topology.ctop.toString())	
 	} else if m.Content == mst_connectall {
 		connectAllNodes(ctx, thisNode, topology)
+	} else if m.Content == mst_disconnect {
+		disconnectNodes(ctx, thisNode, m.Source)
 	}
 
 	fmt.Printf("\n%s_> %s", GREEN, RESET)	

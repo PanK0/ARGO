@@ -28,6 +28,7 @@ const (
 	PROTOCOL_DET	= "/det/"			// Protocol for Detector algorithm
 	PROTOCOL_EXP2	= "/exp2/"			// Protocol for Explorer2 algorithm
 	PROTOCOL_MST	= "/mst/"			// Protocol to manage master-slave operations
+	PROTOCOL_CRC	= "/crc/"			// Protocol for CombinedRC algorithm
 
 	TYPE_BROADCAST	= "BROADCAST"
 	TYPE_DIRECT_MSG	= "DIRECTMSG" 
@@ -35,6 +36,8 @@ const (
 	TYPE_EXPLORER	= "EXPLORER"
 	TYPE_EXPLORER2	= "EXPLORER2"
 	TYPE_MASTER		= "MASTER"
+	TYPE_CRC_CNT	= "COMBINEDRC_CNT"	// Content type for combinedRC message exchange
+	TYPE_CRC_ROU	= "COMBINEDRC_ROU"	// Route type for combinedRC message exchange
 
 	// Commands
 	cmd_help 		= "-help"
@@ -59,6 +62,7 @@ const (
 	mst_top_acquire	= "TOP_ACQUIRE"
 	mst_top_load	= "TOP_LOAD"
 	mst_connectall	= "CONNECTALL"
+	mst_disconnect	= "DISCONNECT"
 	
 	// Mode in which some commands are called
 	mod_help_def	= "DEFAULT"

@@ -75,7 +75,11 @@ and
 > -master CONNECTALL
 ```
 
-Then, close the master node by typing `ctrl+C`.
+Then, close the master node by giving the command:
+
+```
+> -master DISCONNECT
+```
 
 The other nodes will receive the instructions from the master and will print their actions on their own shell: after closing the master, the network is up and ready to be used.
 

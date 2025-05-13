@@ -70,7 +70,7 @@ func getStreamEndpoints(s network.Stream, h host.Host, ADDRESS_TYPE string) stri
 
 // Run the node by setting the stream handler 
 func runNode(ctx context.Context, h host.Host, messageContainer *MessageContainer, 
-			deliveredMessages *MessageContainer, topology *Topology) {
+			deliveredMessages *MessageContainer, sentMessages *MessageContainer, topology *Topology) {
 	fmt.Println("Running node: ", getNodeAddress(h, ADDR_DEFAULT))
 	topology.nodeID = getNodeAddress(h, ADDR_DEFAULT)
 
@@ -140,7 +140,7 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 
 // Run the node by setting the stream handler 
 func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *MessageContainer, 
-						deliveredMessages *MessageContainer, topology *Topology) {
+						deliveredMessages *MessageContainer, sentMessages *MessageContainer, topology *Topology) {
 	fmt.Println("Running node: ", getNodeAddress(h, ADDR_DEFAULT))
 	topology.nodeID = getNodeAddress(h, ADDR_DEFAULT)
 
@@ -247,6 +247,33 @@ func connectNodes(ctx context.Context, sourceNode host.Host, targetNode_address 
 
 }
 
+
+// Disconnects two nodes
+//lint:ignore U1000 Unused function for future use
+func disconnectNodes(ctx context.Context, sourceNode host.Host, targetNode_address string) {
+	// Turn the destination into a multiaddr.
+	targetNode_maddr, err := multiaddr.NewMultiaddr(targetNode_address)
+	if err != nil {
+		printError(err)		
+	}
+
+	// Extract the peer ID from the multiaddr.
+	targetNode_info, err := peer.AddrInfoFromP2pAddr(targetNode_maddr)
+	if err != nil {
+		printError(err)		
+	}
+
+	// Disconnect the source node with the other node
+	err = sourceNode.Network().ClosePeer(targetNode_info.ID)
+	if err != nil {
+		printError(err)
+	}
+
+	printResult := fmt.Sprintf("Connection closed between \n - Node %s \n - Node %s\n", getNodeAddress(sourceNode, ADDR_DEFAULT), targetNode_address)
+	fmt.Println(printResult)
+
+}
+
 // Connects this node with all the nodes in the topology
 func connectAllNodes(ctx context.Context, sourceNode host.Host, topology *Topology) {
 	for _, node := range topology.ctop.GetNeighbourhood(getNodeAddress(sourceNode, ADDR_DEFAULT)) {
@@ -274,7 +301,7 @@ func acquireTopology(h host.Host, topology *Topology) {
             }
         }
 
-        // Add the connection to the topology
+        // Add the connection to the topology. Do not add the master address
         if len(peer_address) > 0 && peer_address != master_address {
             topology.ctop.AddNeighbour(getNodeAddress(h, ADDR_DEFAULT), peer_address)
         }

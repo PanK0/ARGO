@@ -231,7 +231,7 @@ func (g *Graph) GraphToString() string {
 			if i > 0 {
 				str += ", "
 			}
-			str += fmt.Sprintf("%s", neighborToPrint)
+			str += neighborToPrint
 		}
 		str += "]; "
 	}

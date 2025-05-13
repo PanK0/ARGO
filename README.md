@@ -43,9 +43,10 @@ Directory in which are presented some examples on how to start a network
 - `manage_console_input.go` : takes the input given from the user through the console and translates it into operations for the nodes to perform.
 - `message_container.go` : data struct and operations that stores messages and groups them by their ID.
 - `message.go` : message type data struct definition.
-- `messages_operations.go` : where the magic happens. Here are implemented the functions that take the messages given in input and send them as direct messages or broadcasts. It also contains the stream handlers, that are supposed to react when a message arrives on the stream.
 - `node_operations.go` : creation and connection of nodes, plus some other features.
 - `output_print_functions.go` : all the functions used to print the output on the console.
+- `protocol_*.go` : filse that describe the protocols.
+- `protocols_operations.go` : where the magic happens. Here are implemented the functions that take the messages given in input and send them as direct messages or broadcasts. It also contains the stream handlers, that are supposed to react when a message arrives on the stream.
 - `topology.go` : contains topology information, like uTop and cTop and some operations.
 - `utils.go` : utility functions.
 
@@ -240,6 +241,7 @@ By now, from master it is possible to command all nodes at once:
 > -master TOP_ACQUIRE
 > -master TOP_LOAD
 > -master CONNECTALL
+> -master DISCONNECT
 ```
 **TO DO** : implement a very well functioning version
 

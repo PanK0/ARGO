@@ -4,8 +4,8 @@ import time
 import subprocess
 
 # Array of node identifiers (cycling through these in auto mode)
-nodes = ["A", "B", "C", "W"]
-#nodes = ["A", "B", "C", "D", "E", "F", "G", "W"]
+#nodes = ["A", "B", "C", "W"]
+nodes = ["A", "B", "C", "D", "E", "F", "G", "W"]
 
 def open_terminals(n_shells, command, automod=None, address=None):
     """
