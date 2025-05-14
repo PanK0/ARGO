@@ -22,40 +22,43 @@ var explorer2Mutex sync.Mutex
 // !! WARNING : this function closes already existant streams and opens a new one.
 // !! this is made to avoid to reach the limit of streams for each connection
 func openStream(ctx context.Context, thisNode host.Host, targetNode_info peer.ID, protocol protocol.ID) (network.Stream, error) {
-	
-	// Lock the function (critical section)
-	streamMutex.Lock()
-	// Unlock before exiting
-	defer streamMutex.Unlock()
+    // Lock the function (critical section)
+    streamMutex.Lock()
+    defer streamMutex.Unlock()
 
-	// List of connections of the current node
-	connections := thisNode.Network().Conns()
-	
-	// Cycle through the connections of the node until you find the one
-	// where this node is connected with targetNode
-	for _, c := range connections {
+    // List of connections of the current node
+    connections := thisNode.Network().Conns()
 
-		if c.RemotePeer().String() == targetNode_info.String() {
-			// IF there are no streams in the connection, open a new stream.
-			// ELSE close the existent one and open a new stream
-			if len(c.GetStreams()) == 0 {
-				stream, err := thisNode.NewStream(ctx, targetNode_info, protocol)
-				return stream, err
-			} else {
-				for _, s := range c.GetStreams() {
-					if s.Conn().RemotePeer() == targetNode_info {
-						s.Close()
-						s, err := thisNode.NewStream(ctx, targetNode_info, protocol)
-						return s, err
-					}
-				}
-			}
+    // Cycle through the connections of the node until you find the one
+    // where this node is connected with targetNode
+    for _, c := range connections {
+        if c.RemotePeer() == targetNode_info {
+            // Check if there are existing streams
+            streams := c.GetStreams()
+            if len(streams) > 0 {
+                // Close all existing streams
+                for _, s := range streams {
+                    if s.Conn().RemotePeer() == targetNode_info {
+                        s.Close()
+                    }
+                }
+            }
+            // Open a new stream
+            stream, err := thisNode.NewStream(ctx, targetNode_info, protocol)
+            if err != nil {
+                return nil, fmt.Errorf("failed to open new stream: %w", err)
+            }
+            return stream, nil
+        }
+    }
 
-		}
-	}
-	stream, err := thisNode.NewStream(ctx, targetNode_info, protocol)
-	return stream, err
-} 
+    // If no connection exists, open a new stream
+    stream, err := thisNode.NewStream(ctx, targetNode_info, protocol)
+    if err != nil {
+        return nil, fmt.Errorf("failed to open new stream: %w", err)
+    }
+    return stream, nil
+}
 
 // Generic send function, to send a message to a single given peer
 func send(ctx context.Context, thisNode host.Host, targetNode peer.ID, m Message, protocol protocol.ID) {

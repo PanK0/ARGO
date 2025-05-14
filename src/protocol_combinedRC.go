@@ -29,7 +29,9 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 
 // Send function for CombinedRC protocol
 //lint:ignore U1000 Unused function for future use
-func sendCombinedRC(ctx context.Context, thisNode host.Host, exp_msg Message, sentMessages *MessageContainer) {
-
+func sendCombinedRC_exp2(ctx context.Context, thisNode host.Host, exp_msg Message, sentMessages *MessageContainer) {
+	sendExplorer2(ctx, thisNode, exp_msg)
+	sentMessages.Add(exp_msg)
+	
 }
 
