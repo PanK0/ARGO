@@ -10,6 +10,7 @@ import (
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
 // Handle stream for EXPLORER2 protocol
@@ -90,53 +91,30 @@ func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, 
 		}
 		}
 	}
-
-
 	// Check whether m is in deliveredMessages
 	// Modification 4
 	if len(deliveredMessages.Get(m.ID)) == 0 {
 		// if m arrived with a void path, means that m.Sender delivered the message
-		// Add the message m to the message container
 		m.Target = getNodeAddress(thisNode, ADDR_DEFAULT)
 		messageContainer.Add(m)
-		/*
-		event := fmt.Sprintf("handle %s - Message from %s added to message container", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
-		logEvent(thisNode.ID().String(), PRINTOPTION, event)
-		old_sender := m.Sender
-		*/
 
-		// Check whether m.Source == m.Sender
 		// Modification 1
 		if m.Source == m.Sender {
-			// DELIVER AND RELAY
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, m, top)
 		} else if len(messageContainer.countNodeDisjointPaths_intersection(m.ID)) > MAX_BYZANTINES  {
-			// Count the node disjoint paths of a message with a certain msg_id
-			// if n_disj_paths > MAX_BYZANTINES then deliver and relay
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, m, top)
-	
 		} else {
 			// Send the message to all the nodes who never ever received the message
-			
-			// Forward the message
 			for _, p := range thisNode.Network().Peers() {
-				// Only forward the message if p is not in m.path 
-				// or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
+				// Only forward the message if p is not in m.path or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
 				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()){
-					// send the message
-					/*
-					event = fmt.Sprintf("handle %s - Node %s in no paths: send message sent by %s", m.Content, addressToPrint(p.String(), NODE_PRINTLAST), addressToPrint(old_sender, NODE_PRINTLAST))
-					logEvent(thisNode.ID().String(), PRINTOPTION, event)
-					*/
 					m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
 					send(ctx, thisNode, p, m, PROTOCOL_EXP2)					
 				} 
 			}
 		}
-	} else {
-		
-		deliveredMessages.Add(m)
-		
+	} else {		
+		deliveredMessages.Add(m)		
 		BFT_deliver(*messageContainer, *deliveredMessages, m, top)
 		event := fmt.Sprintf("handle %s - delivering message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
@@ -147,21 +125,10 @@ func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, 
 // Send an EXPLORER2 message
 // described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
 //lint:ignore U1000 Unused function for future use
-func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message) {
+func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message, PROTOCOL protocol.ID) {
 	
 	// Add the sender
 	exp_msg.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
-
-	/*
-	// Add the sender (thisNode) to the visited set (path)
-	// Only if the path contains no elements
-	// OR the last element of the path is not this node
-	if 	len(exp_msg.Path) == 0 || 
-		(len(exp_msg.Path) > 0 && exp_msg.Path[len(exp_msg.Path)-1] != getNodeAddress(thisNode, ADDR_DEFAULT)) {
-		exp_msg.Path = append(exp_msg.Path, getNodeAddress(thisNode, ADDR_DEFAULT))
-	}
-		*/
-
 	dataBytes, err := json.Marshal(exp_msg)
 	if err != nil {
 		printError(err)
@@ -176,7 +143,7 @@ func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message) {
 		if (contains(exp_msg.Path, p.String())) {
 			printShell()
 		} else {
-			stream, err := openStream(ctx, thisNode, p, PROTOCOL_EXP2)
+			stream, err := openStream(ctx, thisNode, p, PROTOCOL)
 			if err != nil {
 				printError(err)
 			}
@@ -194,74 +161,79 @@ func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message) {
 	}
 }
 
-// Delivery function for BFT
-func BFT_deliver(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) {
-	// Add the message to the delivered messages
-	messages := messageContainer.Get(m.ID)
+// Helper function to handle common delivery logic
+func manageDelivery(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) {
+    // Add the message to the delivered messages
+    messages := messageContainer.Get(m.ID)
 
-	// Topology update
-	// If m.Source is not in the cTop, add it to the cTop with its neighbourhood
-	// If m.Source is already in cTop and m.Neighbourhood is a super set of the current registered neighbourhood in cTop, then substitute the neighbourhood
-	// If m.Source is already in cTop and m.Neighbourhood is a subset of the current registered neighbourhood in cTop, then move m.Source and its neighbourhood from cTop to uTop
-	if !top.ctop.checkInCTop(m.Source) {
-		top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
-	} else if top.ctop.checkInCTop(m.Source) &&
-		isSubSet(top.ctop.GetNeighbourhood(m.Source), m.Neighbourhood) == 0 {
-		top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
-	} else if top.ctop.checkInCTop(m.Source) &&
-		isSubSet(m.Neighbourhood, top.ctop.GetNeighbourhood(m.Source)) == 0 {
-		top.utop.AddElement(m.Source, top.ctop.GetNeighbourhood(m.Source), m.Path)
-		top.ctop.RemoveElement(m.Source)
-	}
+    // Update the topology
+    if !top.ctop.checkInCTop(m.Source) {
+        top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
+    } else if top.ctop.checkInCTop(m.Source) &&
+        isSubSet(top.ctop.GetNeighbourhood(m.Source), m.Neighbourhood) == 0 {
+        top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
+    } else if top.ctop.checkInCTop(m.Source) &&
+        isSubSet(m.Neighbourhood, top.ctop.GetNeighbourhood(m.Source)) == 0 {
+        top.utop.AddElement(m.Source, top.ctop.GetNeighbourhood(m.Source), m.Path)
+        top.ctop.RemoveElement(m.Source)
+    }
 
-	// Add m to delivered messages
-	for _, m := range messages {
-		deliveredMessages.Add(m)
-	}
-	// Delete the message from the messageContainer
-	messageContainer.deleteElement(m.ID)
+    // Add the message to delivered messages
+    for _, msg := range messages {
+        deliveredMessages.Add(msg)
+    }
+
+    // Remove the message from the message container
+    messageContainer.deleteElement(m.ID)
 }
 
 // Delivery function for BFT
-func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host, 
-							messageContainer MessageContainer, deliveredMessages MessageContainer,
-							m Message, top *Topology) {
+func BFT_deliver(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) {
+    // Handle the common delivery logic
+    manageDelivery(messageContainer, deliveredMessages, m, top)
+}
 
-	BFT_deliver(messageContainer, deliveredMessages, m, top)
-	event := fmt.Sprintf("deliver %s - Message sent by %s delivered!", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
-	logEvent(thisNode.ID().String(), PRINTOPTION, event)
-	// Remove the neighbourhood
-	// Modification 2
-	m.Path = []string{}
+// Delivery and relay function for BFT
+func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
+    messageContainer MessageContainer, deliveredMessages MessageContainer,
+    m Message, top *Topology) {
 
-	// Update the sender
-	old_sender := m.Sender
-	m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
+    // Deliver the message
+    BFT_deliver(messageContainer, deliveredMessages, m, top)
 
-	dataBytes, err := json.Marshal(m)
-	if err != nil {
-		printError(err)
-	}
-	msg := string(dataBytes)
+    // Log the delivery event
+    event := fmt.Sprintf("deliver %s - Message sent by %s delivered!", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+    logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
-	// Forward the message with void visitedset (path) set to all the peers that do not appear in any path of the visited set
-	for _, p := range thisNode.Network().Peers() {
-		
-		if !deliveredMessages.lookInPaths(m.ID, p.String()) {
-			stream, err := openStream(ctx, thisNode, p, PROTOCOL_EXP2)
-			if err != nil {
-				printError(err)
-			}
+    // Prepare the message for relaying
+    m.Path = []string{} // Clear the path
+    old_sender := m.Sender
+    m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
 
-			message := fmt.Sprintf("%s\n", msg)
+    dataBytes, err := json.Marshal(m)
+    if err != nil {
+        printError(err)
+        return
+    }
+    msg := string(dataBytes)
 
-			// Write the message on the stream
-			_, err = stream.Write([]byte(message))
-			if err != nil {
-				printError(err)
-			}
-			event := fmt.Sprintf("delandrelay %s - Forward message from %s on node %s", m.Content, addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST) )
-			logEvent(thisNode.ID().String(), PRINTOPTION, event)
-		}
-	}
+    // Relay the message to peers not in any path of the delivered messages
+    for _, p := range thisNode.Network().Peers() {
+        if !deliveredMessages.lookInPaths(m.ID, p.String()) {
+            stream, err := openStream(ctx, thisNode, p, PROTOCOL_EXP2)
+            if err != nil {
+                printError(err)
+                continue
+            }
+
+            message := fmt.Sprintf("%s\n", msg)
+            _, err = stream.Write([]byte(message))
+            if err != nil {
+                printError(err)
+            }
+
+            event := fmt.Sprintf("delandrelay %s - Forward message from %s on node %s", m.Content, addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
+            logEvent(thisNode.ID().String(), PRINTOPTION, event)
+        }
+    }
 }

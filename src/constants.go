@@ -38,6 +38,7 @@ const (
 	TYPE_MASTER		= "MASTER"
 	TYPE_CRC_CNT	= "COMBINEDRC_CNT"	// Content type for combinedRC message exchange
 	TYPE_CRC_ROU	= "COMBINEDRC_ROU"	// Route type for combinedRC message exchange
+	TYPE_CRC_EXP	= "COMBINEDRC_EXP"	// Exploration type for combinedRC message exchange
 
 	// Commands
 	cmd_help 		= "-help"

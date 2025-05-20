@@ -92,7 +92,7 @@ func (mc MessageContainer) countNodeDisjointPaths(msg_id string) int {
 // This function is suited for BFT communication primitive and doesn't admit 
 // the source and the last node in the path.
 // If you want to make the function consider them, change 
-// msg.path WITH path[1 : len(msg.path)-1] 
+// msg.path WITH msg.path[1 : len(msg.path)-1] 
 // in the loop commented with BFT_PATHS
 func (mc *MessageContainer) countNodeDisjointPaths_intersection(msg_id string) [][]string {
 	var disjointPaths [][]string

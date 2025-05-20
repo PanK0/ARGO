@@ -29,9 +29,18 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 
 // Send function for CombinedRC protocol
 //lint:ignore U1000 Unused function for future use
-func sendCombinedRC_exp2(ctx context.Context, thisNode host.Host, exp_msg Message, sentMessages *MessageContainer) {
-	sendExplorer2(ctx, thisNode, exp_msg)
-	sentMessages.Add(exp_msg)
-	
+func sendCombinedRC_exp2(ctx context.Context, thisNode host.Host, m Message, sentMessages *MessageContainer) {
+
+	// if m.type == TYPE_CRC_CNT 
+	//		check whether exists a dps between (thisNode, m.target) in DisjointPaths structure
+	// 		and send a routed message among all the paths for dp(thisNode, m.target) 
+	// else if m.type == TYPE_CRC_EXP 
+	//		sendExplorer2()
+	// else if m.type == TYPE_CRC_ROU
+	//		send the computed dps between (thisNode, m.target) in DisjointPaths structure
+
+	sendExplorer2(ctx, thisNode, m, PROTOCOL_CRC)
+	sentMessages.Add(m)
+
 }
 

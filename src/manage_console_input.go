@@ -283,7 +283,7 @@ func manageConsoleInput(ctx context.Context, h host.Host, messageContainer *Mess
 				Path: visitedSet,
 			}
 
-			sendExplorer2(ctx, h, explorer2_message)
+			sendExplorer2(ctx, h, explorer2_message, PROTOCOL_EXP2)
 		}
 
 		command, idx = findElement(inputData_words, cmd_master)
