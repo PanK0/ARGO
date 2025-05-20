@@ -20,7 +20,7 @@ func NewDisjointPaths() *DisjointPaths {
 }
 
 // Add a path to the disjoint path
-func (dp *DisjointPaths) Add(path []string, node_id string) {
+func (dp *DisjointPaths) Add(node_id string, path []string) {
 	if _, ok := dp.paths[node_id]; !ok {
 		dp.paths[node_id] = make([][]string, 0)
 	}

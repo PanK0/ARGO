@@ -13,26 +13,10 @@ import (
 	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
-// Handle stream for EXPLORER2 protocol
-// described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
-//lint:ignore U1000 Unused function for future use
-func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, top *Topology, 
-					messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
-
-	// Read the buffer and extract the message
-	buf := bufio.NewReader(s)
-	message, err := buf.ReadString('\n')
-	if err != nil {
-		printError(err)
-	}
-
-	// Transform the message
-	var m Message
-	err = json.Unmarshal([]byte(message), &m)
-	if err != nil {
-		printError(err)
-	}
-
+// function to manage an EXP2 message
+func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topology,
+		messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
+	
 	m.Content = time.Now().Format("05.00000")
 	event := fmt.Sprintf("handle %s - Handling message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
 	logEvent(thisNode.ID().String(), PRINTOPTION, event)
@@ -96,29 +80,57 @@ func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, 
 	if len(deliveredMessages.Get(m.ID)) == 0 {
 		// if m arrived with a void path, means that m.Sender delivered the message
 		m.Target = getNodeAddress(thisNode, ADDR_DEFAULT)
-		messageContainer.Add(m)
+		messageContainer.Add(*m)
 
 		// Modification 1
 		if m.Source == m.Sender {
-			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, m, top)
+			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
 		} else if len(messageContainer.countNodeDisjointPaths_intersection(m.ID)) > MAX_BYZANTINES  {
-			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, m, top)
+			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
 		} else {
 			// Send the message to all the nodes who never ever received the message
 			for _, p := range thisNode.Network().Peers() {
 				// Only forward the message if p is not in m.path or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
 				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()){
 					m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
-					send(ctx, thisNode, p, m, PROTOCOL_EXP2)					
+					send(ctx, thisNode, p, *m, PROTOCOL_EXP2)					
 				} 
 			}
 		}
 	} else {		
-		deliveredMessages.Add(m)		
-		BFT_deliver(*messageContainer, *deliveredMessages, m, top)
+		deliveredMessages.Add(*m)		
+		BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
 		event := fmt.Sprintf("handle %s - delivering message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 	}
+	return nil
+}
+
+// Handle stream for EXPLORER2 protocol
+// described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
+//lint:ignore U1000 Unused function for future use
+func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, top *Topology, 
+					messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
+
+	// Read the buffer and extract the message
+	buf := bufio.NewReader(s)
+	message, err := buf.ReadString('\n')
+	if err != nil {
+		printError(err)
+	}
+
+	// Transform the message
+	var m Message
+	err = json.Unmarshal([]byte(message), &m)
+	if err != nil {
+		printError(err)
+	}
+
+	err = receive_EXP(ctx, thisNode, &m, top, messageContainer, deliveredMessages)
+	if err != nil {
+		printError(err)
+	}
+
 	return nil
 }
 

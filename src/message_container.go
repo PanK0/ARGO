@@ -129,3 +129,36 @@ func (mc *MessageContainer) countNodeDisjointPaths_intersection(msg_id string) [
 
 	return disjointPaths
 }
+
+
+// Similar to the previous function, but this one
+// returns the list of disjoint paths given a node ID instead of a message ID.
+func (mc *MessageContainer) countNodeDisjointPaths_crc(node_id string) [][]string {
+	var disjointPaths [][]string
+	usedNodes := make(map[string]bool)
+
+	// Iterate through each message and check for node-disjoint paths
+	for _, messages := range mc.messages {
+		for _, msg := range messages {
+			isDisjoint := true
+
+			// Check if any node in the path is already used
+			for _, node := range msg.Path { // BFT_PATHS
+				if usedNodes[node] {
+					isDisjoint = false
+					break
+				}
+			}
+
+			// If disjoint, add to result and mark nodes as used
+			if isDisjoint {
+				disjointPaths = append(disjointPaths, msg.Path)
+				for _, node := range msg.Path { // BFT_PATHS
+					usedNodes[node] = true
+				}
+			}
+		}
+	}
+
+	return disjointPaths
+}

@@ -179,6 +179,15 @@ func printHelp_ProtocolInfo(h host.Host) {
 		color_info, RESET, color_info, RESET,
 	)
 
+	combinedRC := fmt.Sprintf(
+		"%sCOMBINED RC:%s \n" +
+		"\t%sRun CombinedRC exploration phase%s \n" +
+		"\t-crc %s \n" +
+		"\t%sRun CombinedRC route declaration phase%s \n" +
+		"\t-crc %s %s\n",
+		color_info, RESET, color_info, RESET, mod_crc_exp, color_info, RESET, mod_crc_rou, getNodeAddress(h, ADDR_DEFAULT),
+	)
+
 	fmt.Printf("%s", connect)
 	fmt.Printf("%s", connect_desc)
 	fmt.Printf("%s", send)
@@ -187,6 +196,7 @@ func printHelp_ProtocolInfo(h host.Host) {
 	fmt.Printf("%s", explorer)
 	fmt.Printf("%s", explorer_desc)
 	fmt.Printf("%s", explorer2)
+	fmt.Printf("%s", combinedRC)
 }
 
 // Print messages related information

@@ -15,7 +15,9 @@ import (
 )
 
 // Manages the input from the console to perform the wanted actions
-func manageConsoleInput(ctx context.Context, h host.Host, messageContainer *MessageContainer, deliveredMessages *MessageContainer, topology *Topology) (*bufio.ReadWriter, error) {
+func manageConsoleInput(ctx context.Context, h host.Host, 
+	messageContainer *MessageContainer, deliveredMessages *MessageContainer, disjointPaths *DisjointPaths, 
+	topology *Topology) (*bufio.ReadWriter, error) {
 	stdReader := bufio.NewReader(os.Stdin)
 	// endless loop
 	for {
@@ -286,6 +288,45 @@ func manageConsoleInput(ctx context.Context, h host.Host, messageContainer *Mess
 			sendExplorer2(ctx, h, explorer2_message, PROTOCOL_EXP2)
 		}
 
+		// CombinedRC messages
+		command, idx = findElement(inputData_words, cmd_crc)
+		if command == cmd_crc {
+			if len(inputData_words) == 1 {
+				fmt.Println("Provide correct input for CombinedRC")
+			} else if len(inputData_words) > 1 {
+				// Generate an ID for the message
+				timestamp := time.Now().Unix()
+				hasher := sha1.New()
+				hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
+				msgid := fmt.Sprintf("%x", hasher.Sum(nil))
+				neighbourhood := topology.ctop.GetNeighbourhood(getNodeAddress(h, ADDR_DEFAULT))
+				var visitedSet []string
+				var crc_message Message = 
+				Message{
+					ID: msgid, 
+					Type: "", 
+					Sender: "", 
+					Source: getNodeAddress(h, ADDR_DEFAULT), 
+					Target: "",
+					Content: "",
+					Neighbourhood: neighbourhood,
+					Path: visitedSet,
+				}
+
+				if len(inputData_words) == 2 && inputData_words[idx+1] == mod_crc_exp {
+					crc_message.Type = TYPE_CRC_EXP
+				} else if len(inputData_words) == 3 && 
+							inputData_words[idx+1] == mod_crc_rou &&
+							inputData_words[idx+2] != "" {
+					crc_message.Type = TYPE_CRC_ROU
+					crc_message.Target = inputData_words[idx+2]
+				}
+
+				// Send crc_exp2 message
+				sendCombinedRC(ctx, h, crc_message, deliveredMessages, disjointPaths)
+			}
+		}
+
 		command, idx = findElement(inputData_words, cmd_master)
 		if command == cmd_master {
 			// Generate an ID for the message
@@ -307,8 +348,12 @@ func manageConsoleInput(ctx context.Context, h host.Host, messageContainer *Mess
 				Path: visitedSet,
 			}
 			if len(inputData_words) == 2 {
-				master_message.Content = inputData_words[idx+1]
-				sendMaster(ctx, h, master_message)
+				if inputData_words[idx+1] == mst_connect {
+					connectNodes(ctx, h, master_address, topology)
+				} else {
+					master_message.Content = inputData_words[idx+1]
+					sendMaster(ctx, h, master_message)
+				}
 			}
 
 			

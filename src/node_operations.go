@@ -70,7 +70,8 @@ func getStreamEndpoints(s network.Stream, h host.Host, ADDRESS_TYPE string) stri
 
 // Run the node by setting the stream handler 
 func runNode(ctx context.Context, h host.Host, messageContainer *MessageContainer, 
-			deliveredMessages *MessageContainer, sentMessages *MessageContainer, topology *Topology) {
+			deliveredMessages *MessageContainer, sentMessages *MessageContainer, 
+			disjointPaths *DisjointPaths, topology *Topology) {
 	fmt.Println("Running node: ", getNodeAddress(h, ADDR_DEFAULT))
 	topology.nodeID = getNodeAddress(h, ADDR_DEFAULT)
 
@@ -132,6 +133,16 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 			s.Close()
 		}
 	})
+	
+	// Set stream handler for combinedRC messages
+	h.SetStreamHandler(PROTOCOL_CRC, func (s network.Stream)  {
+		err := handleCombinedRC(s, ctx, h, topology, messageContainer, deliveredMessages, sentMessages, disjointPaths)
+		if err != nil {
+			s.Reset()
+		} else {
+			s.Close()
+		}
+	})
 
 	printStartMessage(h, mod_help_prot)
 	printNodeInfo(h)
@@ -140,7 +151,8 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 
 // Run the node by setting the stream handler 
 func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *MessageContainer, 
-						deliveredMessages *MessageContainer, sentMessages *MessageContainer, topology *Topology) {
+						deliveredMessages *MessageContainer, sentMessages *MessageContainer,
+						disjointPaths *DisjointPaths, topology *Topology) {
 	fmt.Println("Running node: ", getNodeAddress(h, ADDR_DEFAULT))
 	topology.nodeID = getNodeAddress(h, ADDR_DEFAULT)
 
@@ -196,6 +208,16 @@ func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *M
 	// Set stream handler for master-slave messages
 	h.SetStreamHandler(PROTOCOL_MST, func (s network.Stream)  {
 		err := handleMaster(s, ctx, h, messageContainer, topology)
+		if err != nil {
+			s.Reset()
+		} else {
+			s.Close()
+		}
+	})
+
+	// Set stream handler for combinedRC messages
+	h.SetStreamHandler(PROTOCOL_CRC, func (s network.Stream)  {
+		err := handleCombinedRC(s, ctx, h, topology, messageContainer, deliveredMessages, sentMessages, disjointPaths)
 		if err != nil {
 			s.Reset()
 		} else {

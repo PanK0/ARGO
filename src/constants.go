@@ -58,12 +58,14 @@ const (
 	cmd_graph		= "-graph"
 	cmd_master		= "-master"
 	cmd_byzantine	= "-byzantine"
+	cmd_crc			= "-crc"
 
 	// Master commands
 	mst_top_acquire	= "TOP_ACQUIRE"
 	mst_top_load	= "TOP_LOAD"
 	mst_connectall	= "CONNECTALL"
 	mst_disconnect	= "DISCONNECT"
+	mst_connect 	= "CONNECT"
 	
 	// Mode in which some commands are called
 	mod_help_def	= "DEFAULT"
@@ -81,6 +83,9 @@ const (
 	mod_top_load	= "LOAD"
 	mod_top_neigh	= "NEIGH"
 	mod_top_force	= "FORCE"
+	mod_crc_exp		= "EXP"
+	mod_crc_rou		= "ROU"
+	mod_crc_cnt		= "SEND"
 	
 	
 	start_automatic	= "auto"			// Start the network automatically

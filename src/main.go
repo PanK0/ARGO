@@ -37,26 +37,27 @@ func main() {
 	receivedMessages := NewMessageContainer()
 	deliveredMessages := NewMessageContainer()
 	sentMessages := NewMessageContainer()
+	disjointPaths := NewDisjointPaths()
 	h := createNode()
 
 	if *mod == start_automatic && *nod != "" && *dest != "" {
 		master_address = *dest
 		ReplaceInCSV(topology_path, getNodeAddress(h, ADDR_DEFAULT), *nod)
-		runNode_knownTopology(ctx, h, receivedMessages, deliveredMessages, sentMessages, topology)
+		runNode_knownTopology(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
 		connectNodes(ctx, h, *dest, topology)
-		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, topology)
+		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, disjointPaths, topology)
 	} else if *mod == start_automatic && *nod != "" {
 		ReplaceInCSV(topology_path, getNodeAddress(h, ADDR_DEFAULT), *nod)
-		runNode_knownTopology(ctx, h, receivedMessages, deliveredMessages, sentMessages, topology)
-		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, topology)
+		runNode_knownTopology(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
+		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, disjointPaths, topology)
 	} else if *mod == "" && *dest != "" {
 		master_address = *dest
-		runNode(ctx, h, receivedMessages, deliveredMessages, sentMessages, topology)
+		runNode(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
 		connectNodes(ctx, h, *dest, topology)
-		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, topology)
+		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, disjointPaths, topology)
 	} else {
-		runNode(ctx, h, receivedMessages, deliveredMessages, sentMessages, topology)
-		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, topology)
+		runNode(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
+		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, disjointPaths, topology)
 	}
 
 	// Wait forever
