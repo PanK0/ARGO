@@ -99,3 +99,40 @@ func isSubSet(a []string, b []string) int {
 	}
 	return 0
 }
+
+// Given a list of lists of strings, transform it into a string in json format that can be later converted into a list of lists of strings
+//lint:ignore U1000 Unused function for future use
+func convertListToString(lists [][]string) string {
+	var result string
+	for _, list := range lists {
+		result += "["
+		for i, str := range list {
+			result += "\"" + str + "\""
+			if i != len(list)-1 {
+				result += ", "
+			}
+		}
+		result += "]"
+	}
+	return result
+}
+
+// Given a string in json format, convert it into a list of lists of strings
+//lint:ignore U1000 Unused function for future use
+func convertStringToList(str string) [][]string {
+	var result [][]string
+	str = strings.Trim(str, "[]")
+	if str == "" {
+		return result
+	}
+	lists := strings.Split(str, "], [")
+	for _, list := range lists {
+		list = strings.Trim(list, "[]")
+		if list == "" {
+			continue
+		}
+		elements := strings.Split(list, ", ")
+		result = append(result, elements)
+	}
+	return result
+} 

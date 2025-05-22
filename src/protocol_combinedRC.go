@@ -57,24 +57,36 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 
 // Send function for CombinedRC ROU messages
 //lint:ignore U1000 Unused function for future use
-func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, deliveredMessages *MessageContainer, disjointPaths *DisjointPaths) {
+func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
 	// Add the sender
 	m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
 
-	// Compute Node Disjoint Paths for the target node
-	djp := deliveredMessages.countNodeDisjointPaths_crc(m.Target)
-	// add all the disjointPaths to disjointPaths
-	for _, dp := range djp {
-		disjointPaths.Add(m.Target, dp)
-	}
+	// Create a graph
+	g := ConvertCTopToGraph(&top.ctop)
+	g.PrintGraph()
 
-	fmt.Println("Disjoint Paths for target node", m.Target, ":", djp)
-	
+	// Find Disjoint Paths
+	disjointPaths.MergeDP(g.GetDisjointPaths(m.Target, m.Source))
+	disjointPaths.PrintDP()
+
+	// Fill the content
+	m.Content = convertListToString(disjointPaths.paths[m.Target])
+	fmt.Println(m.Content)
+
+	/*
+	// Send the message
+	dataBytes, err := json.Marshal(m)
+	if err != nil {
+		printError(err)
+	}
+	msg := string(dataBytes)
+	*/	
+
 }
 
 // Send function for CombinedRC protocol
-func sendCombinedRC(ctx context.Context, thisNode host.Host, m Message, deliveredMessages *MessageContainer, disjointPaths *DisjointPaths) {
+func sendCombinedRC(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
 	// if m.type == TYPE_CRC_CNT 
 	//		check whether exists a dps between (thisNode, m.target) in DisjointPaths structure
@@ -87,7 +99,7 @@ func sendCombinedRC(ctx context.Context, thisNode host.Host, m Message, delivere
 	if m.Type == TYPE_CRC_EXP {
 		sendExplorer2(ctx, thisNode, m, PROTOCOL_CRC)
 	} else if m.Type == TYPE_CRC_ROU {
-		send_CRC_ROU(ctx, thisNode, m, deliveredMessages, disjointPaths)
+		send_CRC_ROU(ctx, thisNode, m, top, disjointPaths)
 	}
 	
 

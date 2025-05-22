@@ -323,7 +323,7 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 				}
 
 				// Send crc_exp2 message
-				sendCombinedRC(ctx, h, crc_message, deliveredMessages, disjointPaths)
+				sendCombinedRC(ctx, h, crc_message, topology, disjointPaths)
 			}
 		}
 

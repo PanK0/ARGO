@@ -506,6 +506,24 @@ func (g *Graph) PrintGraph() {
     fmt.Println()
 }
 
+// Print DisjointPaths
+func (dp *DisjointPaths) PrintDP() {
+	fmt.Println("Disjoint Paths:")
+	for node, paths := range dp.paths {
+		nodetoprint := addressToPrint(node, NODE_PRINTLAST)
+		fmt.Printf("Node %s :\n", nodetoprint)
+		for i, path := range paths {
+			fmt.Printf("\tPath %d : [", i)
+			for _, p := range path {
+				ptoprint := addressToPrint(p, NODE_PRINTLAST)
+				fmt.Printf(" %s , ", ptoprint)
+			}
+			fmt.Printf(" ]\n")
+		}
+		fmt.Println()
+	}
+}
+
 // Print Byzantine Detection Alert
 func printByzantineAlert() {
 	alert := fmt.Sprintf("%s!!!!----- BYZANTINE BEHAVIOUR DETECTED -----!!!!%s\n", RED, RESET)

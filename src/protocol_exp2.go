@@ -102,6 +102,10 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
 		event := fmt.Sprintf("handle %s - delivering message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+		/*
+		Che succede se rimuovo la delivery dell'else?
+		I messaggi non vengono inoltrati correttamente e gli altri nodi non hanno la possibilità di calcolare i disjoint paths
+		*/
 	}
 	return nil
 }

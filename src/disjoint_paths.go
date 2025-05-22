@@ -56,6 +56,41 @@ func (dp *DisjointPaths) GetNumberOfPathsAll() map[string] int {
 	return numberOfPaths
 }
 
+// Check if a path is already present in the DisjointPaths
+func (dp *DisjointPaths) containsPath(node_id string, path []string) bool {
+	for _, p := range dp.paths[node_id] {
+		if len(p) != len(path) {
+			continue
+		}
+		equal := true
+		for i := 0; i < len(p); i++ {
+			if p[i] != path[i] {
+				equal = false
+				break
+			}
+		}
+		if equal {
+			return true
+		}
+	}
+	return false
+}
+
+// Given a DisjointPaths object, merge it with another one by adding the paths of the second one to the first one if the paths are not already present
+func (dp *DisjointPaths) MergeDP(dp2 *DisjointPaths) {
+	for k, v := range dp2.paths {
+		if _, ok := dp.paths[k]; !ok {
+			dp.paths[k] = make([][]string, 0)
+		}
+		for _, path := range v {
+			if !dp.containsPath(k, path) {
+				dp.paths[k] = append(dp.paths[k], path)
+			}
+		}
+	}
+}
+
+
 // Transform the DisjointPaths into a string
 func (dp *DisjointPaths) toString() string {
 	msg := ""

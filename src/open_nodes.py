@@ -4,8 +4,8 @@ import time
 import subprocess
 
 # Array of node identifiers (cycling through these in auto mode)
-nodes = ["A", "B", "C", "W"]
-#nodes = ["A", "B", "C", "D", "E", "F", "G", "W"]
+nodes4 = ["A", "B", "C", "W"]
+nodes8 = ["A", "B", "C", "D", "E", "F", "G", "W"]
 
 def open_terminals(n_shells, command, automod=None, address=None):
     """
@@ -16,12 +16,20 @@ def open_terminals(n_shells, command, automod=None, address=None):
     :param automod: If "auto", assigns node names
     :param address: Optional address to append (-d ADDRESS)
     """
+    if n_shells == 4:
+        nodes_l = nodes4
+    elif n_shells == 8:
+        nodes_l = nodes8
+    else:
+        print("Error: n_shells must be 4 or 8 when using automod.")
+        sys.exit(1)
+
     for i in range(n_shells):
         full_command = command  # Start with the base command
         
         # If automod is enabled, add -m auto -n <node>
         if automod == "auto":
-            node = nodes[i % len(nodes)]  # Cycle through node names
+            node = nodes_l[i % len(nodes_l)]  # Cycle through node names
             full_command += f" -m auto -n {node}"
 
         # Append -d ADDRESS if provided
