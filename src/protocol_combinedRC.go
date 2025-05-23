@@ -14,12 +14,60 @@ import (
 
 // Function to manage a CNT message
 //lint:ignore U1000 Unused function for future use
-func receive_CNT() {
+func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
+	messageContainer.Add(*m)
+	event := fmt.Sprintf("receive_CRC_CNT - msg from %s added to MessageContainer", addressToPrint(m.Sender, NODE_PRINTLAST))
+		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
+	if m.Target == getNodeAddress(thisNode, ADDR_DEFAULT) {
+		event := fmt.Sprintf("receive_CRC_CNT - msg from %s Received!", addressToPrint(m.Sender, NODE_PRINTLAST))
+		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+		fmt.Print(msgToString(*m))
+	} else {
+		// Forward this message to the next node in the path
+		thisPeer, idx := findElement(m.Path, getNodeAddress(thisNode, ADDR_DEFAULT))
+
+		m.Sender = thisPeer
+
+		// Turn the destination into a multiaddr
+		peer_maddr, err := multiaddr.NewMultiaddr(m.Path[idx+1])
+		if err != nil {
+			printError(err)
+		}
+
+		// Extract the peer ID from the multiaddr
+		peer_info, err := peer.AddrInfoFromP2pAddr(peer_maddr)
+		if err != nil {
+			printError(err)
+		}
+
+		stream, err := openStream(ctx, thisNode, peer_info.ID, PROTOCOL_CRC)
+		if err != nil {
+			printError(err)
+		}
+
+		dataBytes, err := json.Marshal(m)
+		if err != nil {
+			printError(err)
+		}
+		msg := string(dataBytes)
+		msg += "\n" 
+
+		// Write the message on the stream
+		_, err = stream.Write([]byte(msg))
+		if err != nil {
+			printError(err)
+		}
+
+		event := fmt.Sprintf("receive_CRC_CNT - Message Forwarded to %s", addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
+		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+
+	}
+
+	return nil
 }
 
 // Function to manage a ROU message
-//lint:ignore U1000 Unused function for future use
 func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
 
 	messageContainer.Add(*m)
@@ -108,6 +156,11 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 		if err != nil {
 			printError(err)
 		}
+	} else if m.Type == TYPE_CRC_CNT {
+		err = receive_CNT(ctx, thisNode, &m, top, messageContainer, disjointPaths)
+		if err != nil {
+			printError(err)
+		}
 	}
 
 
@@ -116,7 +169,6 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 }
 
 // Send function for CombinedRC ROU messages
-//lint:ignore U1000 Unused function for future use
 func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
 	// Add the sender
@@ -128,10 +180,6 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 
 	// Find Disjoint Paths
 	disjointPaths.MergeDP(g.GetDisjointPaths(m.Target, m.Source))
-
-	// Fill the content
-	m.Content = convertListToString(disjointPaths.paths[m.Target])
-	fmt.Println(m.Content)
 
 	// Send routed messages to target node
 	for _, path := range disjointPaths.paths[m.Target] {
@@ -175,29 +223,70 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}
+}
 
-	
 
+// Send function for CombinedRC CNT messages
+func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
+	// Add the sender
+	m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
+
+	// Send routed messages to target node
+	for _, path := range disjointPaths.paths[m.Target] {
+
+		m.Path = path
+
+		// Turn the destination into a multiaddr
+		peer_maddr, err := multiaddr.NewMultiaddr(path[1])
+		if err != nil {
+			printError(err)
+			continue
+		}
+
+		// Extract the peer ID from the multiaddr
+		peer_info, err := peer.AddrInfoFromP2pAddr(peer_maddr)
+		if err != nil {
+			printError(err)
+			continue
+		}
+
+		stream, err := openStream(ctx, thisNode, peer_info.ID, PROTOCOL_CRC)
+		if err != nil {
+			printError(err)
+			continue
+		}
+
+		dataBytes, err := json.Marshal(m)
+		if err != nil {
+			printError(err)
+		}
+		msg := string(dataBytes) 
+		msg += "\n"
+
+		// Write the message on the stream
+		_, err = stream.Write([]byte(msg))
+		if err != nil {
+			printError(err)
+		}
+
+		event := fmt.Sprintf("send_CRC_CNT - to %s", addressToPrint(m.Target, NODE_PRINTLAST))
+		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+
+	}
 }
 
 // Send function for CombinedRC protocol
 func sendCombinedRC(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
-	// if m.type == TYPE_CRC_CNT 
-	//		check whether exists a dps between (thisNode, m.target) in DisjointPaths structure
-	// 		and send a routed message among all the paths for dp(thisNode, m.target) 
-	// else if m.type == TYPE_CRC_EXP 
-	//		sendExplorer2()
-	// else if m.type == TYPE_CRC_ROU
-	//		send the computed dps between (thisNode, m.target) in DisjointPaths structure
-
 	if m.Type == TYPE_CRC_EXP {
 		sendExplorer2(ctx, thisNode, m, PROTOCOL_CRC)
 	} else if m.Type == TYPE_CRC_ROU {
 		send_CRC_ROU(ctx, thisNode, m, top, disjointPaths)
+	} else if m.Type == TYPE_CRC_CNT {
+		send_CRC_CNT(ctx, thisNode, m, top, disjointPaths)
+	} else {
+		fmt.Println("Set correct CRC type")
 	}
 	
-
 }
-

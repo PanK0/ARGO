@@ -326,8 +326,13 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 							inputData_words[idx+2] != "" {
 					crc_message.Type = TYPE_CRC_ROU
 					crc_message.Target = inputData_words[idx+2]
+				} else if len(inputData_words) > 3 &&
+							inputData_words[idx+1] == mod_crc_cnt &&
+							inputData_words[idx+2] == cmd_msg {
+					crc_message.Type = TYPE_CRC_CNT
+					crc_message.Target = inputData_words[idx+3]
+					crc_message.Content = extractMessage(inputData)
 				}
-
 				// Send crc_exp2 message
 				sendCombinedRC(ctx, h, crc_message, topology, disjointPaths)
 			}
