@@ -56,6 +56,7 @@ const (
 	cmd_network		= "-network"
 	cmd_topology	= "-topology"
 	cmd_graph		= "-graph"
+	cmd_djp			= "-djp"
 	cmd_master		= "-master"
 	cmd_byzantine	= "-byzantine"
 	cmd_crc			= "-crc"

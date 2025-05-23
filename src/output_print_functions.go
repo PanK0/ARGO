@@ -267,10 +267,18 @@ func printHelp_NetworkInfo() {
 		color_desc, RESET,
 	)
 
+	djp := fmt.Sprintf(
+		"%sDISJOINT PATHS: %s \n" +
+		"\t%sShow Disjoint Paths %s \n" +
+		"\t-djp",
+		color_info, RESET, color_info, RESET,
+	)
+
 	fmt.Printf("%s", network)
 	fmt.Printf("%s", topology)
 	fmt.Printf("%s", graph)
 	fmt.Printf("%s", graph_desc)
+	fmt.Printf("%s", djp)
 
 }
 

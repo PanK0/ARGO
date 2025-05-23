@@ -214,6 +214,12 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 			}
 		}
 
+		// Show disjoint Paths
+		command, _ = findElement(inputData_words, cmd_djp)
+		if command == cmd_djp {
+			disjointPaths.PrintDP()
+		}
+
 		// Send detector message
 		command, _ = findElement(inputData_words, cmd_detector)
 		if command == cmd_detector {
