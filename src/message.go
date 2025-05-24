@@ -47,6 +47,13 @@ func msgToString(m Message) string {
 		co = ""
 	case TYPE_EXPLORER2 :
 		ta = ""
+	case TYPE_CRC_EXP :
+		ta = ""
+	case TYPE_CRC_ROU :
+		co = "" 
+		ne = ""
+	case TYPE_CRC_CNT :
+		ne = ""
 	}
 
 	msg := id + ty + se + so + ta + co + ne + pa

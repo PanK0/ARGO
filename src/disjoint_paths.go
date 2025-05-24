@@ -91,13 +91,23 @@ func (dp *DisjointPaths) MergeDP(dp2 *DisjointPaths) {
 }
 
 
-// Transform the DisjointPaths into a string
+// Print DisjointPaths
 func (dp *DisjointPaths) toString() string {
-	msg := ""
-	for k, v := range dp.paths {
-		msg += fmt.Sprintf("%s - %s\n", k, v)
+	str := "Disjoint Paths:"
+	for node, paths := range dp.paths {
+		nodetoprint := addressToPrint(node, NODE_PRINTLAST)
+		str += fmt.Sprintf("Node %s :\n", nodetoprint)
+		for i, path := range paths {
+			str += fmt.Sprintf("\tPath %d : [", i)
+			for _, p := range path {
+				ptoprint := addressToPrint(p, NODE_PRINTLAST)
+				str += fmt.Sprintf(" %s , ", ptoprint)
+			}
+			str += fmt.Sprintf(" ]\n")
+		}
+		str += fmt.Sprint("\n")
 	}
-	return msg
+	return str
 }
 
 // Given a DisjointPaths key, transform the key and the values into a string that can be lately be reinserted into the DisjointPaths

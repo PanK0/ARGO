@@ -328,6 +328,9 @@ func printMessage(message string) {
 	} else if msg.Type == TYPE_EXPLORER2 {
 		msgtype = TYPE_EXPLORER2
 		color = GREY
+	} else if msg.Type == TYPE_CRC_EXP || msg.Type == TYPE_CRC_ROU || msg.Type == TYPE_CRC_CNT {
+		msgtype = TYPE_CRC
+		color = GREEN
 	}
 
 	header := fmt.Sprintf("\n%s----RECEIVED %s----%s\n", color, msgtype, RESET)
@@ -396,6 +399,9 @@ func allMessages(messageContainer MessageContainer, mod string) string {
 		} else if messages[0].Type == TYPE_EXPLORER || messages[0].Type == TYPE_EXPLORER2 {
 			color_msg_top = GREY_BG
 			color_msg_bot = GREY
+		} else if  messages[0].Type == TYPE_CRC_EXP ||  messages[0].Type == TYPE_CRC_ROU ||  messages[0].Type == TYPE_CRC_CNT {
+			color_msg_top = GREEN_BG
+			color_msg_bot = GREEN
 		}
 
 

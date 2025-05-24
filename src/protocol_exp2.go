@@ -18,7 +18,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
 	
 	m.Content = time.Now().Format("05.00000")
-	event := fmt.Sprintf("handle %s - Handling message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+	event := fmt.Sprintf("receive_EXP2 %s - Handling message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
 	logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	// TO DO: When the local neighbourhood changes, 
@@ -100,7 +100,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 	} else {		
 		deliveredMessages.Add(*m)		
 		BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
-		event := fmt.Sprintf("handle %s - delivering message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_EXP2 %s - delivering message from %s", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		/*
 		Che succede se rimuovo la delivery dell'else?
@@ -116,6 +116,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, top *Topology, 
 					messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
 
+	defer s.Close()
 	// Read the buffer and extract the message
 	buf := bufio.NewReader(s)
 	message, err := buf.ReadString('\n')
@@ -171,7 +172,9 @@ func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message, PRO
 			if err != nil {
 				printError(err)
 			}
-			event := fmt.Sprintf("sendExp2 %s - Forwarded message from %s to node %s", exp_msg.Content, addressToPrint(exp_msg.Sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
+			stream.Close() // <-- chiudi sempre lo stream dopo la scrittura
+
+			event := fmt.Sprintf("send_EXP2 %s - Forwarded message from %s to node %s", exp_msg.Content, addressToPrint(exp_msg.Sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		}
 	}
@@ -218,7 +221,7 @@ func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
     BFT_deliver(messageContainer, deliveredMessages, m, top)
 
     // Log the delivery event
-    event := fmt.Sprintf("deliver %s - Message sent by %s delivered!", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+    event := fmt.Sprintf("deliver_EXP2 %s - Message sent by %s delivered!", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
     logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
     // Prepare the message for relaying
@@ -247,8 +250,9 @@ func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
             if err != nil {
                 printError(err)
             }
+            stream.Close()
 
-            event := fmt.Sprintf("delandrelay %s - Forward message from %s on node %s", m.Content, addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
+            event := fmt.Sprintf("delandrelay_EXP2 %s - Forward message from %s on node %s", m.Content, addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
             logEvent(thisNode.ID().String(), PRINTOPTION, event)
         }
     }

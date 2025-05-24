@@ -25,7 +25,7 @@ def create_event_table(log_entries):
     df = pd.DataFrame(log_entries)
     
     # Convert timestamps to datetime for sorting
-    df["Timestamp"] = pd.to_datetime(df["Timestamp"])
+    df["Timestamp"] = pd.to_datetime(df["Timestamp"], format='mixed')
     df = df.sort_values(by="Timestamp")
 
     # Pivot table: Nodes as rows, Events as columns

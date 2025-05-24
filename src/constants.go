@@ -36,6 +36,7 @@ const (
 	TYPE_EXPLORER	= "EXPLORER"
 	TYPE_EXPLORER2	= "EXPLORER2"
 	TYPE_MASTER		= "MASTER"
+	TYPE_CRC		= "COMBINED RC"
 	TYPE_CRC_CNT	= "COMBINEDRC_CNT"	// Content type for combinedRC message exchange
 	TYPE_CRC_ROU	= "COMBINEDRC_ROU"	// Route type for combinedRC message exchange
 	TYPE_CRC_EXP	= "COMBINEDRC_EXP"	// Exploration type for combinedRC message exchange
@@ -90,7 +91,7 @@ const (
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/topology.csv"	// Path to the topology file
+	topology_path 	= "../config/topology2.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"

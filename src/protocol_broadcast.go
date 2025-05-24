@@ -35,7 +35,7 @@ func handleBroadcast(s network.Stream, ctx context.Context, thisNode host.Host, 
 		// If byzantine is of Type 1, then sleep for bz.Delay milliseconds
 		if bz.Type1 {
 			event := fmt.Sprintf("byzantine %s - delay of %s ms", m.Content, bz.Delay)
-				logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 			time.Sleep(bz.Delay)
 		}
 		// If byzantine is of Type 2, then drop the message with bz.Droprate probability

@@ -16,17 +16,19 @@ import (
 //lint:ignore U1000 Unused function for future use
 func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
 	messageContainer.Add(*m)
+	/*
 	event := fmt.Sprintf("receive_CRC_CNT - msg from %s added to MessageContainer", addressToPrint(m.Sender, NODE_PRINTLAST))
-		logEvent(thisNode.ID().String(), PRINTOPTION, event)
-
+	logEvent(thisNode.ID().String(), PRINTOPTION, event)
+	*/
+	
 	if m.Target == getNodeAddress(thisNode, ADDR_DEFAULT) {
-		event := fmt.Sprintf("receive_CRC_CNT - msg from %s Received!", addressToPrint(m.Sender, NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_CNT - Content from %s received from %s!", addressToPrint(m.Source, NODE_PRINTLAST), addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		fmt.Print(msgToString(*m))
 	} else {
 		// Forward this message to the next node in the path
 		thisPeer, idx := findElement(m.Path, getNodeAddress(thisNode, ADDR_DEFAULT))
-
+		old_sender := m.Sender
 		m.Sender = thisPeer
 
 		// Turn the destination into a multiaddr
@@ -59,7 +61,7 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 			printError(err)
 		}
 
-		event := fmt.Sprintf("receive_CRC_CNT - Message Forwarded to %s", addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_CNT - Content from %s forwarded to %s",addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}
@@ -71,8 +73,10 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
 
 	messageContainer.Add(*m)
+	/*
 	event := fmt.Sprintf("receive_CRC_ROU - msg from %s added to MessageContainer", addressToPrint(m.Sender, NODE_PRINTLAST))
-		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+	logEvent(thisNode.ID().String(), PRINTOPTION, event)
+	*/
 
 	if m.Target == getNodeAddress(thisNode, ADDR_DEFAULT) {
 		// reverse the path and add it into DisjointPaths
@@ -80,12 +84,12 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
             m.Path[i], m.Path[j] = m.Path[j], m.Path[i]
         }
 		disjointPaths.Add(m.Source, m.Path)
-		event := fmt.Sprintf("receive_CRC_ROU - msg from %s added to DJP", addressToPrint(m.Sender, NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_ROU - Route from %s added to DJP for %s", addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 	} else {
 		// Forward this message to the next node in the path
 		thisPeer, idx := findElement(m.Path, getNodeAddress(thisNode, ADDR_DEFAULT))
-
+		old_sender := m.Sender
 		m.Sender = thisPeer
 
 		// Turn the destination into a multiaddr
@@ -118,7 +122,7 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 			printError(err)
 		}
 
-		event := fmt.Sprintf("receive_CRC_ROU - Message Forwarded to %s", addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_ROU - Route from %s forwarded to %s", addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}
@@ -131,6 +135,8 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host, top *Topology, 
 					messageContainer *MessageContainer, deliveredMessages *MessageContainer, sentMessages *MessageContainer,
 					disjointPaths *DisjointPaths) error {
+
+	defer s.Close()
 
 	// Read the buffer and extract the message
 	buf := bufio.NewReader(s)
@@ -173,10 +179,11 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 
 	// Add the sender
 	m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
+	m.Neighbourhood = []string{}
 
 	// Create a graph
 	g := ConvertCTopToGraph(&top.ctop)
-	g.PrintGraph()
+	//g.PrintGraph()
 
 	// Find Disjoint Paths
 	disjointPaths.MergeDP(g.GetDisjointPaths(m.Target, m.Source))
@@ -219,7 +226,7 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 			printError(err)
 		}
 
-		event := fmt.Sprintf("send_CRC_ROU - to %s", addressToPrint(path[1], NODE_PRINTLAST))
+		event := fmt.Sprintf("send_ROU - Route sent to %s for %s", addressToPrint(path[1], NODE_PRINTLAST), addressToPrint(m.Target, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}
@@ -231,6 +238,7 @@ func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topol
 
 	// Add the sender
 	m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
+	m.Neighbourhood = []string{}
 
 	// Send routed messages to target node
 	for _, path := range disjointPaths.paths[m.Target] {
@@ -270,7 +278,7 @@ func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topol
 			printError(err)
 		}
 
-		event := fmt.Sprintf("send_CRC_CNT - to %s", addressToPrint(m.Target, NODE_PRINTLAST))
+		event := fmt.Sprintf("send_CNT - Content sent to %s for %s", addressToPrint(path[1], NODE_PRINTLAST), addressToPrint(m.Target, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}

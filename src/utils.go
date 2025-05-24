@@ -85,7 +85,7 @@ func logEvent(nodeID string, printoption bool, event string) {
 	defer f.Close()
 
 	// Format the log entry
-	timestamp := time.Now().Format("2006-01-02 15:04:05.000000")
+	timestamp := time.Now().Format("15:04:05.00000")
 	logMessage := fmt.Sprintf("[%s] [%s] %s\n", timestamp, nodeID, event)
 
 	// Write log entry to file
@@ -95,6 +95,7 @@ func logEvent(nodeID string, printoption bool, event string) {
 	}
 
 	if printoption {
+		logMessage = fmt.Sprintf("%s[%s%s%s]%s %s[%s%s%s]%s %s\n", color_info, RESET, timestamp, color_info, RESET, color_info, RESET, nodeID, color_info, RESET, event)
 		fmt.Print(logMessage)
 	}
 }
