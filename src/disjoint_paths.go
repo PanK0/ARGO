@@ -24,6 +24,22 @@ func (dp *DisjointPaths) Add(node_id string, path []string) {
 	if _, ok := dp.paths[node_id]; !ok {
 		dp.paths[node_id] = make([][]string, 0)
 	}
+	// Check if the path is already present
+	for _, p := range dp.paths[node_id] {
+		if len(p) != len(path) {
+			continue
+		}
+		equal := true
+		for i := 0; i < len(p); i++ {
+			if p[i] != path[i] {
+				equal = false
+				break
+			}
+		}
+		if equal {
+			return // Path already present, do not insert
+		}
+	}
 	dp.paths[node_id] = append(dp.paths[node_id], path)
 }
 
@@ -93,7 +109,7 @@ func (dp *DisjointPaths) MergeDP(dp2 *DisjointPaths) {
 
 // Print DisjointPaths
 func (dp *DisjointPaths) toString() string {
-	str := "Disjoint Paths:"
+	str := "Disjoint Paths:\n"
 	for node, paths := range dp.paths {
 		nodetoprint := addressToPrint(node, NODE_PRINTLAST)
 		str += fmt.Sprintf("Node %s :\n", nodetoprint)

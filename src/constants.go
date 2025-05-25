@@ -91,7 +91,7 @@ const (
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/topology2.csv"	// Path to the topology file
+	topology_path 	= "../config/topology.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"
