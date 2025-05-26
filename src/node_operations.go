@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"fmt"
+	"strings"
 
 	"github.com/libp2p/go-libp2p"
 	"github.com/libp2p/go-libp2p/core/host"
@@ -31,6 +32,15 @@ func getNodeAddress(h host.Host, ADDRESS_TYPE string) string {
 	}
 	return ""
 	*/
+}
+
+// Extract Peer ID from a string Multiaddress
+func extractPeerIDFromMultiaddr(addr string) string {
+    parts := strings.Split(addr, "/p2p/")
+    if len(parts) == 2 {
+        return parts[1]
+    }
+    return addr // fallback: return as is if not a multiaddr
 }
 
 
@@ -126,7 +136,7 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 
 	// Set stream handler for master-slave messages
 	h.SetStreamHandler(PROTOCOL_MST, func (s network.Stream)  {
-		err := handleMaster(s, ctx, h, messageContainer, topology)
+		err := handleMaster(s, ctx, h, messageContainer, topology, disjointPaths)
 		if err != nil {
 			s.Reset()
 		} else {
@@ -207,7 +217,7 @@ func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *M
 
 	// Set stream handler for master-slave messages
 	h.SetStreamHandler(PROTOCOL_MST, func (s network.Stream)  {
-		err := handleMaster(s, ctx, h, messageContainer, topology)
+		err := handleMaster(s, ctx, h, messageContainer, topology, disjointPaths)
 		if err != nil {
 			s.Reset()
 		} else {

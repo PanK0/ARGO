@@ -169,8 +169,6 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 		}
 	}
 
-
-
 	return nil
 }
 

@@ -114,6 +114,10 @@ func sendDetector(ctx context.Context, thisNode host.Host, det_msg Message) {
 	// Cycle through the peers connected to the current node
 	for _, p := range thisNode.Network().Peers() {
 
+		if p.String() == extractPeerIDFromMultiaddr(master_address) {
+			continue // Do not send the message to the master node
+		}
+
 		// open a new stream
 		stream, err := openStream(ctx, thisNode, p, PROTOCOL_DET)
 		if err != nil {

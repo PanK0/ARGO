@@ -121,7 +121,6 @@ func (dp *DisjointPaths) toString() string {
 			}
 			str += fmt.Sprintf(" ]\n")
 		}
-		str += fmt.Sprint("\n")
 	}
 	return str
 }

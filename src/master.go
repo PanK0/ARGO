@@ -3,16 +3,18 @@ package main
 import (
 	"bufio"
 	"context"
+	"crypto/sha1"
 	"encoding/json"
 	"fmt"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
 )
 
-func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, messageContainer *MessageContainer, topology *Topology) error {
+func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, messageContainer *MessageContainer, topology *Topology, disjointPaths *DisjointPaths) error {
 	// Read the buffer and extract the message
 	buf := bufio.NewReader(s)
 	message, err := buf.ReadString('\n')
@@ -40,6 +42,34 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		connectAllNodes(ctx, thisNode, topology)
 	} else if m.Content == mst_disconnect {
 		disconnectNodes(ctx, thisNode, m.Source)
+	} else if m.Content == mst_crc_exp {
+		// Generate an ID for the message
+		timestamp := time.Now().Unix()
+		hasher := sha1.New()
+		hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
+		msgid := fmt.Sprintf("%x", hasher.Sum(nil))
+		neighbourhood := topology.ctop.GetNeighbourhood(getNodeAddress(thisNode, ADDR_DEFAULT))
+		var visitedSet []string
+		var crc_message Message = 
+		Message{
+			ID: msgid, 
+			Type: TYPE_CRC_EXP, 
+			Sender: "", 
+			Source: getNodeAddress(thisNode, ADDR_DEFAULT), 
+			Target: "",
+			Content: "",
+			Neighbourhood: neighbourhood,
+			Path: visitedSet,
+		}
+		sendCombinedRC(ctx, thisNode, crc_message, topology, disjointPaths)
+	} else if m.Content == mst_graph {
+		g := exp2_ConvertCTopToGraph(&topology.ctop)
+		event := g.GraphToString()
+		logEvent(thisNode.ID().String(), false, event)
+		g.PrintGraph()
+	} else if m.Content == mst_djp {
+		event := disjointPaths.toString()
+		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 	}
 
 	fmt.Printf("\n%s_> %s", GREEN, RESET)	
@@ -71,6 +101,11 @@ func sendMaster(ctx context.Context, thisNode host.Host, m Message) {
 		_, err = stream.Write([]byte(message))
 		if err != nil {
 			printError(err)
+		}
+
+		if m.Content == mst_crc_exp {
+			// sleep for 1 second to allow the message to be processed
+			time.Sleep(1 * time.Second)
 		}
 	}
 }

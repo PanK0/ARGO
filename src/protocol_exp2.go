@@ -90,8 +90,13 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		} else {
 			// Send the message to all the nodes who never ever received the message
 			for _, p := range thisNode.Network().Peers() {
+
+				if p.String() == extractPeerIDFromMultiaddr(master_address) {
+					continue // Do not send the message to the master node
+				}
+
 				// Only forward the message if p is not in m.path or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
-				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()){
+				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()) {
 					m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
 					send(ctx, thisNode, p, *m, PROTOCOL_EXP2)					
 				} 
@@ -154,6 +159,10 @@ func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message, PRO
 
 	// Cycle through the peers connected to the current node
 	for _, p := range thisNode.Network().Peers() {
+
+		if p.String() == extractPeerIDFromMultiaddr(master_address) {
+			continue // Do not send the message to the master node
+		}
 
 		// If the peer p is already in the path of the message, then do not forward the message 
 		// then open a stream with p and send the message
@@ -238,6 +247,11 @@ func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
 
     // Relay the message to peers not in any path of the delivered messages
     for _, p := range thisNode.Network().Peers() {
+
+		if p.String() == extractPeerIDFromMultiaddr(master_address) {
+			continue // Do not send the message to the master node
+		}
+
         if !deliveredMessages.lookInPaths(m.ID, p.String()) {
             stream, err := openStream(ctx, thisNode, p, PROTOCOL_EXP2)
             if err != nil {

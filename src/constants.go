@@ -63,11 +63,14 @@ const (
 	cmd_crc			= "-crc"
 
 	// Master commands
-	mst_top_acquire	= "TOP_ACQUIRE"
-	mst_top_load	= "TOP_LOAD"
+	mst_top_acquire	= "TOPACQUIRE"
+	mst_top_load	= "TOPLOAD"
 	mst_connectall	= "CONNECTALL"
 	mst_disconnect	= "DISCONNECT"
 	mst_connect 	= "CONNECT"
+	mst_crc_exp		= "EXP"
+	mst_graph		= "GRAPH"
+	mst_djp			= "DJP"
 	
 	// Mode in which some commands are called
 	mod_help_def	= "DEFAULT"

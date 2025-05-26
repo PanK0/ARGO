@@ -536,7 +536,6 @@ func (dp *DisjointPaths) PrintDP() {
 			}
 			fmt.Printf(" ]\n")
 		}
-		fmt.Println()
 	}
 }
 

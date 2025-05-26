@@ -66,7 +66,7 @@ As it is possible to see, nodes start already connected to the master node.
 From the master, give the commands, in order:
 
 ```
-> -master TOP_LOAD
+> -master TOPLOAD
 ```
 
 and
