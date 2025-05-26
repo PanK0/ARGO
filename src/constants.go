@@ -71,6 +71,7 @@ const (
 	mst_crc_exp		= "EXP"
 	mst_graph		= "GRAPH"
 	mst_djp			= "DJP"
+	mst_log			= "LOG"
 	
 	// Mode in which some commands are called
 	mod_help_def	= "DEFAULT"

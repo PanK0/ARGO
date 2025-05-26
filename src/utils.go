@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"path/filepath"
 	"sync"
 	"time"
 )
@@ -98,4 +99,33 @@ func logEvent(nodeID string, printoption bool, event string) {
 		logMessage = fmt.Sprintf("%s[%s%s%s]%s %s[%s%s%s]%s %s\n", color_info, RESET, timestamp, color_info, RESET, color_info, RESET, nodeID, color_info, RESET, event)
 		fmt.Print(logMessage)
 	}
+}
+
+// Save the content of a Message as a log file named r_log_<Source>.log in the logs directory
+func saveReceivedLog(m Message) error {
+    // Ensure the logs directory exists
+    if _, err := os.Stat(LOGDIR); os.IsNotExist(err) {
+        err := os.Mkdir(LOGDIR, 0755)
+        if err != nil {
+            return fmt.Errorf("Error creating log directory: %v", err)
+        }
+    }
+
+    // Prepare the filename using the source (sanitize if needed)
+    filename := fmt.Sprintf("r_log_%s.log", addressToPrint(m.Source, NODE_PRINTLAST))
+    logPath := filepath.Join(LOGDIR, filename)
+
+    // Write the content to the file
+    f, err := os.Create(logPath)
+    if err != nil {
+        return fmt.Errorf("Error creating log file: %v", err)
+    }
+    defer f.Close()
+
+    _, err = f.WriteString(m.Content)
+    if err != nil {
+        return fmt.Errorf("Error writing to log file: %v", err)
+    }
+
+    return nil
 }

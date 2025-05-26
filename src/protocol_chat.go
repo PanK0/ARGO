@@ -54,6 +54,8 @@ func sendMessage(ctx context.Context, thisNode host.Host, msg string) {
 		printError(err)
 	}
 
+	defer stream.Close()
+
 	message := fmt.Sprintf("%s\n", msg)
 	//fmt.Printf("Sending message...")
 	_, err = stream.Write([]byte(message))

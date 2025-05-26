@@ -75,7 +75,7 @@ and
 > -master CONNECTALL
 ```
 
-Then, close the master node by giving the command:
+Then, close the master node by giving the command (not mandatory):
 
 ```
 > -master DISCONNECT

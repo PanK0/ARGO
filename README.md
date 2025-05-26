@@ -191,6 +191,7 @@ Messages are identified by their type. Types are:
 - DETECTOR  = Detector message
 - EXPLORER  = Explorer message
 - EXPLORER2 = Explorer2 message
+- COMBINEDRC= CombinedRC message, divided in EXPLORER2, ROUTE, CONTENT
 
 Once received, messages are placed in a dedicated message container, that is an internal structure of a node. They can also be **DELIVERED** and so moved in another message container for delivered messages. 
 
@@ -238,9 +239,12 @@ By connecting the nodes to a master node M, M can remotely send instructions.
 By now, from master it is possible to command all nodes at once:
 
 ```
-> -master TOP_ACQUIRE
-> -master TOP_LOAD
+> -master TOPACQUIRE
+> -master TOPLOAD
 > -master CONNECTALL
+> -master EXP
+> -master GRAPH
+> -master DJP
 > -master DISCONNECT
 ```
 **TO DO** : implement a very well functioning version

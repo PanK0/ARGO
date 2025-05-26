@@ -6,12 +6,16 @@ import (
 	"crypto/sha1"
 	"encoding/json"
 	"fmt"
+	"io"
+	"os"
 	"regexp"
 	"strings"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/multiformats/go-multiaddr"
 )
 
 func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, messageContainer *MessageContainer, topology *Topology, disjointPaths *DisjointPaths) error {
@@ -70,6 +74,27 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 	} else if m.Content == mst_djp {
 		event := disjointPaths.toString()
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+	} else if m.Content == mst_log {
+		timestamp := time.Now().Unix()
+		hasher := sha1.New()
+		hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
+		msgid := fmt.Sprintf("%x", hasher.Sum(nil))
+		var neighbourhood []string
+		var visitedSet []string
+		var log_master_message Message = 
+		Message{
+			ID: msgid, 
+			Type: TYPE_MASTER, 
+			Sender: getNodeAddress(thisNode, ADDR_DEFAULT), 
+			Source: getNodeAddress(thisNode, ADDR_DEFAULT), 
+			Target: "",
+			Content: "",
+			Neighbourhood: neighbourhood,
+			Path: visitedSet,
+		}
+		sendLogToMaster(ctx, thisNode, log_master_message)
+	} else {
+		saveReceivedLog(m)
 	}
 
 	fmt.Printf("\n%s_> %s", GREEN, RESET)	
@@ -135,4 +160,52 @@ func parseCommandString(input string) map[string]string {
 	}
 
 	return result
+}
+
+// Send this node's log file to the master node
+func sendLogToMaster(ctx context.Context, thisNode host.Host, m Message) error {
+    // Prepare log file path
+    nodeID := addressToPrint(thisNode.ID().String(), NODE_PRINTLAST)
+    logFile := fmt.Sprintf("%s/%s.log", LOGDIR, nodeID)
+
+    // Open log file
+    f, err := os.Open(logFile)
+	if err != nil {
+        return fmt.Errorf("failed to open log file: %v", err)
+    }
+    defer f.Close()
+
+	// Transform the content of f into a string
+	log_str, err := io.ReadAll(f)
+	if err != nil {
+		printError(err)
+	}
+	m.Content = string(log_str)
+
+    // Parse master_address as multiaddr and get peer info
+    maddr, err := multiaddr.NewMultiaddr(master_address)
+    if err != nil {
+        printError(err)
+    }
+    peerInfo, err := peer.AddrInfoFromP2pAddr(maddr)
+    if err != nil {
+        printError(err)
+    }
+
+    stream, err := openStream(ctx, thisNode, peerInfo.ID, PROTOCOL_MST)
+    if err != nil {
+        printError(err)
+    }
+    defer stream.Close()
+
+	dataBytes, err := json.Marshal(m)
+	if err != nil {
+		printError(err)
+	}
+	message := fmt.Sprintf("%s\n", string(dataBytes))
+	_, err = stream.Write([]byte(message))
+	if err != nil {
+		printError(err)
+	}
+    return nil
 }

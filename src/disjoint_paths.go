@@ -119,7 +119,7 @@ func (dp *DisjointPaths) toString() string {
 				ptoprint := addressToPrint(p, NODE_PRINTLAST)
 				str += fmt.Sprintf(" %s , ", ptoprint)
 			}
-			str += fmt.Sprintf(" ]\n")
+			str += " ]"
 		}
 	}
 	return str
