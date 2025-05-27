@@ -45,6 +45,8 @@ Be sure that the *open_nodes.py* script and the *topology.csv* file are aligned.
 
 To do so, inside the script is present an array that **MUST CONTAIN ALL THE EXACT LETTERS** that represent nodes in the topology.csv file: that is, if the topology.csv file changes, the array in the script MUST be modified as well to ensure a proper functioning of the network.
 
+By default, the `open_nodes.py` script supports the topologies in `topology.csv` and `topology2.csv` file. Other topologies must be well adapted to ensure the proper working of the script.
+
 Locate in the `ARGO/src` folder and run the command
 
 ```
@@ -57,7 +59,14 @@ That, in our case, is:
 > python3 open_nodes.py 4 ./argo auto /ip4/192.168.1.7/tcp/41111/p2p/12D3KooWRs3ynee96N2CRz9rh9H2orX66wYWtUMqwcRDDmBq74Pk
 ```
 
-This command will open 4 different nodes, not yet connected each other, and forces their addresses on the *topology.csv* file and also connects every single node to a master node, previously opened. 
+Where:
+- `open_nodes.py` is the script
+- `4` is the number of wanted nodes
+- `./argo` is the name of the executable
+- `auto` is the mode that automatically matches the nodes with the topology in the `.csv` file
+- `MASTER_ADDRESS` is the master node's address
+
+This command will open 4 different nodes, not yet connected each other, and forces their addresses on the *topology.csv* file and also connects every single node to a master node, previously opened. By default, in file *src/constants.go* is saved the path of the *topology.csv* file, so the software will take in consideration, as topology, a file with that name.
 
 As it is possible to see, nodes start already connected to the master node.
 
@@ -75,12 +84,24 @@ and
 > -master CONNECTALL
 ```
 
-Then, close the master node by giving the command (not mandatory):
-
-```
-> -master DISCONNECT
-```
-
-The other nodes will receive the instructions from the master and will print their actions on their own shell: after closing the master, the network is up and ready to be used.
+The other nodes will receive the instructions from the master and will print their actions on their own shell.
 
 ![subordinate nodes](https://github.com/PanK0/ARGO/blob/main/pictures/ex_masterslave_subordinates.png?raw=true)
+
+## MASTER
+By connecting the nodes to a master node M, M can remotely send instructions and other nodes will execute the commands on their own shell.
+
+By now, from master it is possible to command all nodes at once:
+
+```
+> -master TOPACQUIRE : nodes acquire the topology from their connected peers. Useful when a network is started without a *topology.csv* file
+> -master TOPLOAD : nodes load their knowable topology (that is their neighbourhood or the full topology, this can be changed in the code) from the *topology.csv* file
+> -master CONNECTALL : nodes establish a connection with all other nodes in their neighbourhood
+> -master EXP : nodes send their CombinedRC Exploration Message one by one, with a time interval of one second
+> -master GRAPH : nodes produce their graph of the topology
+> -master DJP : nodes print their Disjoint Paths Solution computed in respect of other nodes
+> -master LOG : master requires the *.log* file from other nodes, that respond with the file. Then master saves the file at *ARGO/logs/r_NODEADDRESS.log*
+> -master DISCONNECT : master disconnects from the nodes
+```
+
+**Take into account that the Master Node is seen as a "phantom node": it is not considered in the normal actions, e.g. sending a broadcast message, that do not involve the Master itself.**

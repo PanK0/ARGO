@@ -245,6 +245,7 @@ By now, from master it is possible to command all nodes at once:
 > -master EXP
 > -master GRAPH
 > -master DJP
+> -master LOG
 > -master DISCONNECT
 ```
 **TO DO** : implement a very well functioning version
@@ -323,16 +324,16 @@ This is an example of the generated timeline after a bit of formatting and color
 Build the docker image. From the main folder:
 
 ```
-> docker build -t argo -f docker/Dockerfile .
+docker build -t argo -f docker/Dockerfile .
 ```
 
-The command builds a docker image named *byzantine* by using the dockerfile in folder *docker/*.
+The command builds a docker image named *argo* by using the dockerfile in folder *docker/*.
 
 ## Run a container
 Run the docker container (one for each node):
 
 ```
-> docker run -dit --rm --name nodeA argo 
+docker run -dit --rm --name nodeA argo 
 ```
 
 Where: 
@@ -347,7 +348,7 @@ Where:
 By accessing the container's shell it is possible to run the node.
 
 ```
-> docker exec -it nodeA bash
+docker exec -it nodeA bash
 ```
 
 Then navigate into the proper folder and run the executable:

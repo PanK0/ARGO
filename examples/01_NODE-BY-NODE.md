@@ -93,4 +93,3 @@ The nodes **must be connected**, otherwise an error is raised.
 The picture shows the process of sending (left) and receiving (right) node of a direct message:
 
 ![node-by-node send](https://github.com/PanK0/ARGO/blob/main/pictures/ex_nodebynode_send.png?raw=true)
-

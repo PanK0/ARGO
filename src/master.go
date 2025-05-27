@@ -34,19 +34,24 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 	}
 
 	if m.Content == mst_top_acquire {
+		// Managed by node
 		acquireTopology(thisNode, topology)
 		fmt.Println("Topology acquired")
 		fmt.Println(topology.ctop.toString())
 	} else if m.Content == mst_top_load {
+		// Managed by node
 		topology_graph := LoadGraphFromCSV(topology_path)
 		topology.ctop.loadNeigh(topology_graph, getNodeAddress(thisNode, ADDR_DEFAULT))
 		// topology.ctop = *loadCTop(topology_graph) // Uncomment this to laod the whole topology
 		fmt.Println(topology.ctop.toString())	
 	} else if m.Content == mst_connectall {
+		// Managed by node
 		connectAllNodes(ctx, thisNode, topology)
 	} else if m.Content == mst_disconnect {
+		// Managed by node
 		disconnectNodes(ctx, thisNode, m.Source)
 	} else if m.Content == mst_crc_exp {
+		// Managed by node
 		// Generate an ID for the message
 		timestamp := time.Now().Unix()
 		hasher := sha1.New()
@@ -67,14 +72,17 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		}
 		sendCombinedRC(ctx, thisNode, crc_message, topology, disjointPaths)
 	} else if m.Content == mst_graph {
+		// Managed by node
 		g := exp2_ConvertCTopToGraph(&topology.ctop)
 		event := g.GraphToString()
 		logEvent(thisNode.ID().String(), false, event)
 		g.PrintGraph()
 	} else if m.Content == mst_djp {
+		// Managed by node
 		event := disjointPaths.toString()
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 	} else if m.Content == mst_log {
+		// Managed by node
 		timestamp := time.Now().Unix()
 		hasher := sha1.New()
 		hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
@@ -93,8 +101,14 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 			Path: visitedSet,
 		}
 		sendLogToMaster(ctx, thisNode, log_master_message)
+	} else if len(m.Content) == 1 {
+		// Managed by Master when a node sends a letter to Force in topology.csv
+		ReplaceInCSV(topology_path, m.Source, m.Content)
+		fmt.Printf("Topology updated: node %s -> %s\n", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
 	} else {
+		// Managed by Master when a node sends a log
 		saveReceivedLog(m)
+		fmt.Printf("Log received from node %s\n", addressToPrint(m.Source, NODE_PRINTLAST))
 	}
 
 	fmt.Printf("\n%s_> %s", GREEN, RESET)	
@@ -208,4 +222,56 @@ func sendLogToMaster(ctx context.Context, thisNode host.Host, m Message) error {
 		printError(err)
 	}
     return nil
+}
+
+// Send the correspondant node letter to the master to replace it in the Topology
+func sendAddressToMaster(ctx context.Context, thisNode host.Host, letter string) error {
+	timestamp := time.Now().Unix()
+	hasher := sha1.New()
+	hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
+	msgid := fmt.Sprintf("%x", hasher.Sum(nil))
+	var neighbourhood []string
+	var visitedSet []string
+	var m Message = 
+	Message {
+		ID: msgid,
+		Type: TYPE_MASTER,
+		Sender: getNodeAddress(thisNode, ADDR_DEFAULT),
+		Source: getNodeAddress(thisNode, ADDR_DEFAULT),
+		Target: "",
+		Content: letter,
+		Neighbourhood: neighbourhood,
+		Path: visitedSet,
+	}
+
+	dataBytes, err := json.Marshal(m)
+	if err != nil {
+		printError(err)
+	}
+
+	master_maddr, err := multiaddr.NewMultiaddr(master_address)
+	if err != nil {
+		printError(err)
+	}
+
+	master_info, err := peer.AddrInfoFromP2pAddr(master_maddr)
+	if err != nil {
+		printError(err)
+	}
+
+	msg := string(dataBytes)
+	msg += "\n"
+
+	stream, err := openStream(ctx, thisNode, master_info.ID, PROTOCOL_MST)
+	if err != nil {
+		printError(err)
+	}
+
+	// Write the message on the stream
+	_, err = stream.Write([]byte(msg))
+	if err != nil {
+		printError(err)
+	}
+
+	return nil
 }

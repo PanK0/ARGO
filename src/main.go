@@ -44,7 +44,8 @@ func main() {
 		master_address = *dest
 		ReplaceInCSV(topology_path, getNodeAddress(h, ADDR_DEFAULT), *nod)
 		runNode_knownTopology(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
-		connectNodes(ctx, h, *dest, topology)
+		connectNodes(ctx, h, master_address, topology)
+		sendAddressToMaster(ctx, h, *nod)
 		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, disjointPaths, topology)
 	} else if *mod == start_automatic && *nod != "" {
 		ReplaceInCSV(topology_path, getNodeAddress(h, ADDR_DEFAULT), *nod)
@@ -53,7 +54,8 @@ func main() {
 	} else if *mod == "" && *dest != "" {
 		master_address = *dest
 		runNode(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
-		connectNodes(ctx, h, *dest, topology)
+		connectNodes(ctx, h, master_address, topology)
+		if *nod != "" {sendAddressToMaster(ctx, h, *nod)}
 		manageConsoleInput(ctx, h, receivedMessages, deliveredMessages, disjointPaths, topology)
 	} else {
 		runNode(ctx, h, receivedMessages, deliveredMessages, sentMessages, disjointPaths, topology)
