@@ -72,6 +72,7 @@ const (
 	mst_graph		= "GRAPH"
 	mst_djp			= "DJP"
 	mst_log			= "LOG"
+	mst_top			= "SENDTOP"
 	
 	// Mode in which some commands are called
 	mod_help_def	= "DEFAULT"

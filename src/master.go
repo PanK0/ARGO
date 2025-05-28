@@ -33,6 +33,14 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		printError(err)
 	}
 
+	if m.Type == mst_top {
+		// Managed by node
+		saveReceivedTop(m)
+		fmt.Println("Topology updated!")
+		fmt.Printf("\n%s_> %s", GREEN, RESET)
+		return nil
+	}
+
 	if m.Content == mst_top_acquire {
 		// Managed by node
 		acquireTopology(thisNode, topology)
@@ -174,6 +182,47 @@ func parseCommandString(input string) map[string]string {
 	}
 
 	return result
+}
+
+// Send this node's log file to the master node
+func sendTopology(ctx context.Context, thisNode host.Host, m Message) error {
+    // Prepare topology file
+	topfile := topology_path
+
+    // Open log file
+    f, err := os.Open(topfile)
+	if err != nil {
+        return fmt.Errorf("failed to open topology file: %v", err)
+    }
+    defer f.Close()
+
+	// Transform the content of f into a string
+	top_str, err := io.ReadAll(f)
+	if err != nil {
+		printError(err)
+	}
+	m.Content = string(top_str)
+
+
+	for _, p := range thisNode.Network().Peers() {
+		stream, err := openStream(ctx, thisNode, p, PROTOCOL_MST)
+		if err != nil {
+			printError(err)
+		}
+		defer stream.Close()
+
+		dataBytes, err := json.Marshal(m)
+		if err != nil {
+			printError(err)
+		}
+		message := fmt.Sprintf("%s\n", string(dataBytes))
+		_, err = stream.Write([]byte(message))
+		if err != nil {
+			printError(err)
+		}
+	}
+    
+    return nil
 }
 
 // Send this node's log file to the master node

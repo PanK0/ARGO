@@ -129,3 +129,23 @@ func saveReceivedLog(m Message) error {
 
     return nil
 }
+
+// Save the content of a Message as topology file
+func saveReceivedTop(m Message) error {
+    // Prepare the filename using the source (sanitize if needed)
+	filename := topology_path
+
+    // Write the content to the file
+    f, err := os.Create(filename)
+    if err != nil {
+        printError(err)
+    }
+    defer f.Close()
+
+    _, err = f.WriteString(m.Content)
+    if err != nil {
+        printError(err)
+    }
+
+    return nil
+}

@@ -362,6 +362,9 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 			if len(inputData_words) == 2 {
 				if inputData_words[idx+1] == mst_connect {
 					connectNodes(ctx, h, master_address, topology)
+				} else if inputData_words[idx+1] == mst_top {
+					master_message.Type = mst_top
+					sendTopology(ctx, h, master_message)
 				} else {
 					master_message.Content = inputData_words[idx+1]
 					sendMaster(ctx, h, master_message)
