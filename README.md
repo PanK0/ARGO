@@ -239,14 +239,15 @@ By connecting the nodes to a master node M, M can remotely send instructions.
 By now, from master it is possible to command all nodes at once:
 
 ```
-> -master TOPACQUIRE
-> -master TOPLOAD
-> -master CONNECTALL
-> -master EXP
-> -master GRAPH
-> -master DJP
-> -master LOG
-> -master DISCONNECT
+> -master TOPACQUIRE : nodes acquire the topology from their connected peers. Useful when a network is started without a *topology.csv* file
+> -master TOPLOAD : nodes load their knowable topology (that is their neighbourhood or the full topology, this can be changed in the code) from the *topology.csv* file
+> -master CONNECTALL : nodes establish a connection with all other nodes in their neighbourhood
+> -master EXP : nodes send their CombinedRC Exploration Message one by one, with a time interval of one second
+> -master GRAPH : nodes produce their graph of the topology
+> -master DJP : nodes print their Disjoint Paths Solution computed in respect of other nodes
+> -master LOG : master requires the *.log* file from other nodes, that respond with the file. Then master saves the file at *ARGO/logs/r_NODEADDRESS.log*
+> -master TOP : master sends the updated topology to all the nodes. Nodes will replace their *topology.csv* file with the one sent by the master
+> -master DISCONNECT : master disconnects from the nodes
 ```
 **TO DO** : implement a very well functioning version
 

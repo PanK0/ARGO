@@ -87,8 +87,13 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		g.PrintGraph()
 	} else if m.Content == mst_djp {
 		// Managed by node
-		event := disjointPaths.toString()
-		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+		djp := disjointPaths.toString()
+		event := disjointPaths.toEvent()
+		logEvent(thisNode.ID().String(), false, event)
+		fmt.Println(djp)
+	} else if m.Content == mst_printprot {
+		// Managed by node
+		printHelp_ProtocolInfo(thisNode)
 	} else if m.Content == mst_log {
 		// Managed by node
 		timestamp := time.Now().Unix()

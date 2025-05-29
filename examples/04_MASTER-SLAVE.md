@@ -101,6 +101,7 @@ By now, from master it is possible to command all nodes at once:
 > -master GRAPH : nodes produce their graph of the topology
 > -master DJP : nodes print their Disjoint Paths Solution computed in respect of other nodes
 > -master LOG : master requires the *.log* file from other nodes, that respond with the file. Then master saves the file at *ARGO/logs/r_NODEADDRESS.log*
+> -master TOP : master sends the updated topology to all the nodes. Nodes will replace their *topology.csv* file with the one sent by the master
 > -master DISCONNECT : master disconnects from the nodes
 ```
 

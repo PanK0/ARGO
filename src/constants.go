@@ -73,6 +73,7 @@ const (
 	mst_djp			= "DJP"
 	mst_log			= "LOG"
 	mst_top			= "SENDTOP"
+	mst_printprot	= "PROTOCOLS"
 	
 	// Mode in which some commands are called
 	mod_help_def	= "DEFAULT"

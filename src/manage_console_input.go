@@ -217,8 +217,9 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 		// Show disjoint Paths
 		command, _ = findElement(inputData_words, cmd_djp)
 		if command == cmd_djp {
-			event := disjointPaths.toString()
+			event := disjointPaths.toEvent()
 			logEvent(h.ID().String(), PRINTOPTION, event)
+			fmt.Println(disjointPaths.toString())
 		}
 
 		// Send detector message

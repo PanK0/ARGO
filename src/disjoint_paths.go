@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"sync"
+)
 
 /*
 	A disjoint path solution for a node A is a set of paths from A to any other generic node
@@ -10,6 +13,7 @@ import "fmt"
 // The paths are represented as a list of strings
 type DisjointPaths struct {
 	paths map[string] [][]string
+	mu    sync.RWMutex
 }
 
 // return a new DisjointPaths
@@ -119,17 +123,27 @@ func (dp *DisjointPaths) toString() string {
 				ptoprint := addressToPrint(p, NODE_PRINTLAST)
 				str += fmt.Sprintf(" %s , ", ptoprint)
 			}
-			str += " ]"
+			str += " ]\n"
 		}
 	}
 	return str
 }
 
-// Given a DisjointPaths key, transform the key and the values into a string that can be lately be reinserted into the DisjointPaths
-func (dp *DisjointPaths) dp_toString(key string) string {
-	msg := ""
-	for _, v := range dp.paths[key] {
-		msg += fmt.Sprintf("%s - ", v)
+
+// Print DisjointPaths
+func (dp *DisjointPaths) toEvent() string {
+	str := "Disjoint Paths:"
+	for node, paths := range dp.paths {
+		nodetoprint := addressToPrint(node, NODE_PRINTLAST)
+		str += fmt.Sprintf("Node %s :", nodetoprint)
+		for i, path := range paths {
+			str += fmt.Sprintf("Path %d : [", i)
+			for _, p := range path {
+				ptoprint := addressToPrint(p, NODE_PRINTLAST)
+				str += fmt.Sprintf(" %s , ", ptoprint)
+			}
+			str += " ]; "
+		}
 	}
-	return msg
+	return str
 }

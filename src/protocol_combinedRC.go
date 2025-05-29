@@ -71,7 +71,8 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 
 // Function to manage a ROU message
 func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
-
+	disjointPaths.mu.Lock()
+	defer disjointPaths.mu.Unlock()
 	messageContainer.Add(*m)
 	/*
 	event := fmt.Sprintf("receive_CRC_ROU - msg from %s added to MessageContainer", addressToPrint(m.Sender, NODE_PRINTLAST))
