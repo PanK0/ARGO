@@ -49,7 +49,7 @@ func (mc MessageContainer) deleteElement(msg_id string) {
 func (mc MessageContainer) lookInPaths(msg_id string, node_id string) bool {
 	messages := mc.Get(msg_id)
 	for _, m := range messages {
-		if getNodeID(m.Sender) == node_id {
+		if getNodeID(m.Sender) == node_id || getNodeID(m.Source) == node_id {
 			return true
 		}
 		for _, p := range m.Path {

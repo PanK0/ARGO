@@ -376,24 +376,50 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 		}
 
 		// Transform this node into a byzantine
-		command, _ = findElement(inputData_words, cmd_byzantine)
-		if command == cmd_byzantine {
-			if !byzantine_status {		
-				var err error
-				bz, err = LoadByzantineConfig(BYZANTINE_CONFIG)
-				if err != nil {
-					printError(err)
-				}		
-				color_info = RED
-				event := fmt.Sprintf("byzantine - Node %s is now a byzantine", addressToPrint(h.ID().String(), NODE_PRINTLAST))
-				logEvent(h.ID().String(), PRINTOPTION, event)
-			} else {
-				event := fmt.Sprintf("byzantine - Node %s is no more a byzantine", addressToPrint(h.ID().String(), NODE_PRINTLAST))
-				logEvent(h.ID().String(), PRINTOPTION, event)
-				color_info = GREEN
+		command, idx = findElement(inputData_words, cmd_byzantine)
+		if len(inputData_words) == 1 {
+			if command == cmd_byzantine {
+				if !byzantine_status {		
+					var err error
+					bz, err = LoadByzantineConfig(BYZANTINE_CONFIG)
+					if err != nil {
+						printError(err)
+					}		
+					color_info = RED
+					event := fmt.Sprintf("byzantine - Node %s is now a byzantine", addressToPrint(h.ID().String(), NODE_PRINTLAST))
+					logEvent(h.ID().String(), PRINTOPTION, event)
+				} else {
+					event := fmt.Sprintf("byzantine - Node %s is no more a byzantine", addressToPrint(h.ID().String(), NODE_PRINTLAST))
+					logEvent(h.ID().String(), PRINTOPTION, event)
+					color_info = GREEN
+				}
+				byzantine_status = !byzantine_status
 			}
-			byzantine_status = !byzantine_status
+		} else if len(inputData_words) == 2  && inputData_words[idx+1] == BYZ_GENERATE {
+			// Generate a fake explorer2 message
+			timestamp := time.Now().Unix()
+			hasher := sha1.New()
+			hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
+			msgid := fmt.Sprintf("%x", hasher.Sum(nil))
+			var neighbourhood []string
+			var visitedSet []string
+			var fake_message Message = 
+			Message{
+				ID: msgid, 
+				Type: TYPE_CRC_EXP, 
+				Sender: getNodeAddress(h, ADDR_DEFAULT), 
+				Source: topology.GetRandomNeighbour(), 
+				Target: "",
+				Content: "",
+				Neighbourhood: neighbourhood,
+				Path: visitedSet,
+			}
+			event := fmt.Sprintf("byzantine - Propagating fake message with source %s. . .", addressToPrint(fake_message.Source, NODE_PRINTLAST))
+			logEvent(h.ID().String(), PRINTOPTION, event)
+			sendCombinedRC(ctx, h, fake_message, topology, disjointPaths)
 		}
+			
+		
 
 		// invoke test function
 		command, _ = findElement(inputData_words, "-test")

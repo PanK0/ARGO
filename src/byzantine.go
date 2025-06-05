@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"strings"
@@ -89,4 +90,20 @@ func LoadByzantineConfig(config_filename string) (Byzantine, error) {
 	}
 
 	return bz, nil
+}
+
+// SwapTwoRandom swaps the position of two random strings in a slice.
+// If the slice has fewer than 2 elements, it does nothing.
+func SwapTwoRandom(list []string) []string {
+    if len(list) < 2 {
+        return list
+    }
+    rand.Seed(time.Now().UnixNano())
+    i := rand.Intn(len(list))
+    j := rand.Intn(len(list))
+    for j == i {
+        j = rand.Intn(len(list))
+    }
+    list[i], list[j] = list[j], list[i]
+    return list
 }

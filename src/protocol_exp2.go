@@ -59,8 +59,9 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 					// Remove a random element from the neighbourhood
 					rand.Seed(time.Now().UnixNano())
 					index := rand.Intn(len(m.Neighbourhood))
+					removed := m.Neighbourhood[index]
 					m.Neighbourhood = append(m.Neighbourhood[:index], m.Neighbourhood[index+1:]...)
-					event := fmt.Sprintf("byzantine %s - Message from %s altered. Removed %s from neighbourhood.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Neighbourhood[index], NODE_PRINTLAST))
+					event := fmt.Sprintf("byzantine %s - Message from %s altered. Removed %s from neighbourhood.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(removed, NODE_PRINTLAST))
 					logEvent(thisNode.ID().String(), PRINTOPTION, event)
 				} 
 			} else if bz.Alterations == BYZ_PATH {
@@ -68,22 +69,36 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 					// Remove a random element from the path
 					rand.Seed(time.Now().UnixNano())
 					index := rand.Intn(len(m.Path))
+					removed := m.Path[index]
 					m.Path = append(m.Path[:index], m.Path[index+1:]...)
-					event := fmt.Sprintf("byzantine %s - Message from %s altered. Removed %s from path.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Path[index], NODE_PRINTLAST))
+					event := fmt.Sprintf("byzantine %s - Message from %s altered. Removed %s from path.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(removed, NODE_PRINTLAST))
 					logEvent(thisNode.ID().String(), PRINTOPTION, event)
 				}
-		}
+			} else if bz.Alterations == BYZ_SWAP_PATH {
+				if len(m.Path) > 1 {
+					rand.Seed(time.Now().UnixNano())
+					i := rand.Intn(len(m.Path))
+					j := rand.Intn(len(m.Path))
+					for j == i {
+						j = rand.Intn(len(m.Path))
+					}
+					m.Path[i], m.Path[j] = m.Path[j], m.Path[i]
+					event := fmt.Sprintf("byzantine %s - Message from %s altered. Swapped %s and %s in path.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Path[j], NODE_PRINTLAST), addressToPrint(m.Path[i], NODE_PRINTLAST))
+					logEvent(thisNode.ID().String(), PRINTOPTION, event)
+				}
+			}
 		}
 	}
 	// Check whether m is in deliveredMessages
 	// Modification 4
+	timestamp_start := time.Now()
 	if len(deliveredMessages.Get(m.ID)) == 0 {
 		// if m arrived with a void path, means that m.Sender delivered the message
 		m.Target = getNodeAddress(thisNode, ADDR_DEFAULT)
 		messageContainer.Add(*m)
 
 		// Modification 1
-		if m.Source == m.Sender {
+		if m.Source == m.Sender && m.Path[0] == m.Source {
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
 		} else if len(messageContainer.countNodeDisjointPaths_intersection(m.ID)) > MAX_BYZANTINES  {
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
@@ -105,13 +120,16 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 	} else {		
 		deliveredMessages.Add(*m)		
 		BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
-		event := fmt.Sprintf("receive_EXP2 %s - delivering message from %s", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_del_EXP2 %s - delivering message from %s", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		/*
 		Che succede se rimuovo la delivery dell'else?
 		I messaggi non vengono inoltrati correttamente e gli altri nodi non hanno la possibilità di calcolare i disjoint paths
 		*/
 	}
+	timestamp_end := time.Now()
+	event = fmt.Sprintf("BFT_execution %s - performed in time %f seconds", m.Content, timestamp_end.Sub(timestamp_start).Seconds())
+	logEvent(thisNode.ID().String(), false, event)
 	return nil
 }
 

@@ -5,6 +5,8 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
@@ -30,7 +32,12 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		thisPeer, idx := findElement(m.Path, getNodeAddress(thisNode, ADDR_DEFAULT))
 		old_sender := m.Sender
 		m.Sender = thisPeer
-
+		
+		if idx+1 >= len(m.Path) {
+			event := fmt.Sprintf("receive_CNT - Invalid path index: idx+1=%d, len(m.Path)=%d", idx+1, len(m.Path))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			return nil
+		}
 		// Turn the destination into a multiaddr
 		peer_maddr, err := multiaddr.NewMultiaddr(m.Path[idx+1])
 		if err != nil {
@@ -93,6 +100,12 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		old_sender := m.Sender
 		m.Sender = thisPeer
 
+		if idx+1 >= len(m.Path) {
+			event := fmt.Sprintf("receive_ROU - Invalid path index: idx+1=%d, len(m.Path)=%d", idx+1, len(m.Path))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			return nil
+		}
+
 		// Turn the destination into a multiaddr
 		peer_maddr, err := multiaddr.NewMultiaddr(m.Path[idx+1])
 		if err != nil {
@@ -153,6 +166,60 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 		printError(err)
 	}
 
+	// Byzantine checking
+	if byzantine_status {
+		// If byzantine is of Type 1, then sleep for bz.Delay milliseconds
+		if bz.Type1 {
+			event := fmt.Sprintf("byzantine %s - delay of %s ms", m.Content, bz.Delay)
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			time.Sleep(bz.Delay)
+		}
+		// If byzantine is of Type 2, then drop the message with bz.Droprate probability
+		if bz.Type2 {
+			if (rand.Float64() < bz.DropRate) {
+				event := fmt.Sprintf("byzantine %s - Message from %s dropped", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+				logEvent(thisNode.ID().String(), PRINTOPTION, event)
+				return nil
+			}
+		}
+		// If byzantine is of Type 3, then remove one random element from the neighbourhood or path
+		if bz.Type3 {
+			if bz.Alterations == BYZ_NEIGHBOURHOOD {
+				if len(m.Neighbourhood) > 0 {
+					// Remove a random element from the neighbourhood
+					rand.Seed(time.Now().UnixNano())
+					index := rand.Intn(len(m.Neighbourhood))
+					removed := m.Neighbourhood[index]
+					m.Neighbourhood = append(m.Neighbourhood[:index], m.Neighbourhood[index+1:]...)
+					event := fmt.Sprintf("byzantine %s - Message from %s altered. Removed %s from neighbourhood.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(removed, NODE_PRINTLAST))
+					logEvent(thisNode.ID().String(), PRINTOPTION, event)
+				} 
+			} else if bz.Alterations == BYZ_PATH {
+				if len(m.Path) > 0 {
+					// Remove a random element from the path
+					rand.Seed(time.Now().UnixNano())
+					index := rand.Intn(len(m.Path))
+					removed := m.Path[index]
+					m.Path = append(m.Path[:index], m.Path[index+1:]...)
+					event := fmt.Sprintf("byzantine %s - Message from %s altered. Removed %s from path.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(removed, NODE_PRINTLAST))
+					logEvent(thisNode.ID().String(), PRINTOPTION, event)
+				}
+			} else if bz.Alterations == BYZ_SWAP_PATH {
+				if len(m.Path) > 1 {
+					rand.Seed(time.Now().UnixNano())
+					i := rand.Intn(len(m.Path))
+					j := rand.Intn(len(m.Path))
+					for j == i {
+						j = rand.Intn(len(m.Path))
+					}
+					m.Path[i], m.Path[j] = m.Path[j], m.Path[i]
+					event := fmt.Sprintf("byzantine %s - Message from %s altered. Swapped %s and %s in path.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Path[j], NODE_PRINTLAST), addressToPrint(m.Path[i], NODE_PRINTLAST))
+					logEvent(thisNode.ID().String(), PRINTOPTION, event)
+				}
+			}
+		}
+	}
+
 	if m.Type == TYPE_CRC_EXP {
 		err = receive_EXP(ctx, thisNode, &m, top, messageContainer, deliveredMessages)
 		if err != nil {
@@ -191,6 +258,11 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 	for _, path := range disjointPaths.paths[m.Target] {
 
 		m.Path = path
+		if len(path) <= 1 {
+			event := fmt.Sprintf("send_CRC_ROU - Invalid path length: %d (need at least 2)", len(path))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			continue
+		}
 
 		// Turn the destination into a multiaddr
 		peer_maddr, err := multiaddr.NewMultiaddr(path[1])
@@ -241,6 +313,11 @@ func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topol
 
 	// Send routed messages to target node
 	for _, path := range disjointPaths.paths[m.Target] {
+		if len(path) <= 1 {
+			event := fmt.Sprintf("send_CRC_CNT - Invalid path length: %d (need at least 2)", len(path))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			continue
+		}
 
 		m.Path = path
 

@@ -11,6 +11,8 @@ const (
 	BYZANTINE_CONFIG	= "../config/byzantine.config"
 	BYZ_NEIGHBOURHOOD	= "neighbourhood"
 	BYZ_PATH			= "path"
+	BYZ_SWAP_PATH		= "swap"
+	BYZ_GENERATE		= "FAKE"
 
 	// Address related constants
 	ADDR_DEFAULT	= "LAN"

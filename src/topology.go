@@ -1,5 +1,10 @@
 package main
 
+import (
+	"math/rand"
+	"time"
+)
+
 /*
 	CTOP
 	confirmed topology
@@ -318,3 +323,14 @@ func Intersect(a []string, b []string) []string {
     return result
 }
 
+// GetRandomNeighbour returns a random neighbour of this node from the topology.
+// Returns an empty string if the node has no neighbours.
+func (top *Topology) GetRandomNeighbour() string {
+    neighbours := top.ctop.GetNeighbourhood(top.nodeID)
+    if len(neighbours) == 0 {
+        return ""
+    }
+    rand.Seed(time.Now().UnixNano())
+    idx := rand.Intn(len(neighbours))
+    return neighbours[idx]
+}

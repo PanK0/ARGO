@@ -37,10 +37,12 @@ Directory in which are presented some examples on how to start a network
 - `byzantine.go` : operations to set up and configure a byzantine node.
 - `constants.go` : constants used in the program.
 - `graph.go` : graph management in order to help the reconstruction of the network topology. Implements Ford-Fulkerson algorithm for max flow, that is useful to determine the number of disjoint paths between two endpoints, and other basic graph operations.
+- `disjoint_paths.go` : data structure to trace the Disjoint Paths Solution.
+. `graph.go` : graph representation of the topology.
 - `list.go` : operations on lists.
-- `master.go` : defining a master protocol in order to manage other nodes via a remote one. Useful when working with big networks.
 - `main.go` : main file, where the message lists are stored and the nodes are run.
 - `manage_console_input.go` : takes the input given from the user through the console and translates it into operations for the nodes to perform.
+- `master.go` : defining a master protocol in order to manage other nodes via a remote one. Useful when working with big networks.
 - `message_container.go` : data struct and operations that stores messages and groups them by their ID.
 - `message.go` : message type data struct definition.
 - `node_operations.go` : creation and connection of nodes, plus some other features.
@@ -284,7 +286,13 @@ Alterations=neighbourhood
 - Type1, Type2 and Type3 entries are trivial: they accept a boolean value true/false
 - Delay: accepts an int that indicates the number of milliseconds of delay to introduce in a Type1 byzantine
 - DropRate: accepts a float r, with 0 < r < 1, that indicates the probability to drop a message in a Type2 byzantine
-- Alterations: accepts a string, that may be `neighbourhood` or `path`. This randomly alterates the content of the specified field of the message by deleting an element.
+- Alterations: accepts a string, that may be `neighbourhood` or `path`. This randomly alterates the content of the specified field of the message by deleting an element. It can also be `swap`, that swaps two nodes in the path of a message.
+
+A Byzantine can also generate a spurious message, I.E. a message with a random source that is different from the actual byzantine node and a void path. To do so, **after activating a byzantine**, give the command:
+
+```
+> -byzantine FAKE
+```
 
 
 # LOGS
@@ -314,7 +322,7 @@ To clear all the generated files, run:
 
 This is an example of the generated timeline after a bit of formatting and coloring:
 
-![Timeline](https://github.com/PanK0/ARGO/blob/main/pictures/timeline.jpeg?raw=true)
+![Timeline](https://github.com/PanK0/ARGO/blob/main/pictures/timeline.png?raw=true)
 
 **TO DO** : this mechanism could be refined, but for now it works
 
@@ -338,7 +346,7 @@ docker run -dit --rm --name nodeA argo
 ```
 
 Where: 
-- *-d* runs the container in detached mode (background)
+- *-d* runs the container in detached mode (background). Remove *-d* to directly start *argo* bash.
 - *-i* keeps standard input open for interactive commands
 - *-t* allocates a pseudo-TTY for the container
 - *--rm* removes the container after it stops
