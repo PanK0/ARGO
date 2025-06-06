@@ -84,10 +84,15 @@ func compareLists(a []string, b []string) int {
 	return 0
 }
 
-// Given two lists of strings, checke whether one is contained in the other
-// return 0 if they contain the same elements
-// return -1 if they don't
-//lint:ignore U1000 Unused function for future use
+
+// isSubSet checks whether all elements of list 'a' are contained in list 'b'.
+// It returns 0 if 'a' is a subset of 'b', and -1 otherwise.
+// Expected input:
+// - 'a': a slice of strings representing the potential subset.
+// - 'b': a slice of strings representing the superset.
+// Output:
+// - 0 if 'a' is a subset of 'b'.
+// - -1 if 'a' is not a subset of 'b'.
 func isSubSet(a []string, b []string) int {
 	if len(a) > len(b) {
 		return -1

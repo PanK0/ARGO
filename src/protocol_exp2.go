@@ -98,7 +98,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		messageContainer.Add(*m)
 
 		// Modification 1
-		if m.Source == m.Sender && m.Path[0] == m.Source {
+		if m.Source == m.Sender && len(m.Path) == 1 && m.Path[0] == m.Source {
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
 		} else if len(messageContainer.countNodeDisjointPaths_intersection(m.ID)) > MAX_BYZANTINES  {
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
@@ -117,10 +117,15 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 				} 
 			}
 		}
-	} else {		
-		deliveredMessages.Add(*m)		
-		BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
-		event := fmt.Sprintf("receive_del_EXP2 %s - delivering message from %s", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+	} else {
+		del := BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
+		if  del {
+			deliveredMessages.Add(*m)
+			messageContainer.deleteElement(m.ID)
+		} else {
+			messageContainer.Add(*m)
+		}	
+		event := fmt.Sprintf("receive_del_EXP2 %s - Message coming from %s, source %s delivered? %t", m.Content,addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST), del)
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		/*
 		Che succede se rimuovo la delivery dell'else?
@@ -208,7 +213,7 @@ func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message, PRO
 }
 
 // Helper function to handle common delivery logic
-func manageDelivery(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) {
+func manageDelivery(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) bool {
     // Add the message to the delivered messages
     messages := messageContainer.Get(m.ID)
 
@@ -220,8 +225,17 @@ func manageDelivery(messageContainer MessageContainer, deliveredMessages Message
         top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
     } else if top.ctop.checkInCTop(m.Source) &&
         isSubSet(m.Neighbourhood, top.ctop.GetNeighbourhood(m.Source)) == 0 {
+		/*
         top.utop.AddElement(m.Source, top.ctop.GetNeighbourhood(m.Source), m.Path)
         top.ctop.RemoveElement(m.Source)
+		event := fmt.Sprintf("manageDelivery %s - Node %s removed from cTop", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+			logEvent(top.nodeID, PRINTOPTION, event)
+		*/
+		top.utop.AddElement(m.Sender, top.ctop.GetNeighbourhood(m.Sender), m.Path)
+        top.ctop.RemoveElement(m.Sender)
+		event := fmt.Sprintf("manageDelivery %s - Node %s removed from cTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+		logEvent(top.nodeID, PRINTOPTION, event)
+		return false
     }
 
     // Add the message to delivered messages
@@ -231,12 +245,14 @@ func manageDelivery(messageContainer MessageContainer, deliveredMessages Message
 
     // Remove the message from the message container
     messageContainer.deleteElement(m.ID)
+
+	return true
 }
 
 // Delivery function for BFT
-func BFT_deliver(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) {
+func BFT_deliver(messageContainer MessageContainer, deliveredMessages MessageContainer, m Message, top *Topology) bool {
     // Handle the common delivery logic
-    manageDelivery(messageContainer, deliveredMessages, m, top)
+    return manageDelivery(messageContainer, deliveredMessages, m, top)
 }
 
 // Delivery and relay function for BFT

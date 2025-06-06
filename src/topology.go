@@ -46,6 +46,23 @@ func (c *CTop) RemoveElement(key string) {
     delete(c.tuples, key)
 }
 
+// TotalRemoveElement removes every entry of node_id both as a key and as any occurrence in the values of any key.
+func (c *CTop) TotalRemoveElement(node_id string) {
+    // Remove node_id as a key
+    c.RemoveElement(node_id)
+
+    // Remove node_id from all neighbourhoods (values)
+    for key, neighbours := range c.tuples {
+        newNeighbours := make([]string, 0, len(neighbours))
+        for _, n := range neighbours {
+            if n != node_id {
+                newNeighbours = append(newNeighbours, n)
+            }
+        }
+        c.tuples[key] = newNeighbours
+    }
+}
+
 // Add a node neighbour to the neighbourhood of node node
 func (ctop CTop) AddNeighbour(node string, neighbour string) {
 	// check whether the neighbour is already in the neighbourhood

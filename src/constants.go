@@ -7,7 +7,7 @@ var byzantine_status = false
 
 const (
 	// Byzantine related constants
-	MAX_BYZANTINES		= 0
+	MAX_BYZANTINES		= 1
 	BYZANTINE_CONFIG	= "../config/byzantine.config"
 	BYZ_NEIGHBOURHOOD	= "neighbourhood"
 	BYZ_PATH			= "path"
@@ -99,7 +99,7 @@ const (
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/topology.csv"	// Path to the topology file
+	topology_path 	= "../config/topology_full.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"
