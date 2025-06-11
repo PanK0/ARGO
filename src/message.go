@@ -5,9 +5,9 @@ import "fmt"
 type Message struct {
 	ID				string			`json:"id"`
 	Type 			string			`json:"type"`
-    Sender 			string			`json:"sender"`
+	Sender 			string			`json:"sender"`
 	Source 			string			`json:"source"`
-    Target 			string			`json:"target"`
+	Target 			string			`json:"target"`
 	Content			string			`json:"content"`
 	Neighbourhood 	[]string		`json:"neighbourhood"`
 	Path			[]string 		`json:"path"`
@@ -59,4 +59,33 @@ func msgToString(m Message) string {
 	msg := id + ty + se + so + ta + co + ne + pa
 	
 	return msg
+}
+
+// Compare two Message objects for equality
+func equalMessage(a, b Message) bool {
+    if a.ID != b.ID ||
+        a.Type != b.Type ||
+        a.Sender != b.Sender ||
+        a.Source != b.Source ||
+        a.Target != b.Target ||
+        a.Content != b.Content {
+        return false
+    }
+    if len(a.Neighbourhood) != len(b.Neighbourhood) {
+        return false
+    }
+    for i := range a.Neighbourhood {
+        if a.Neighbourhood[i] != b.Neighbourhood[i] {
+            return false
+        }
+    }
+    if len(a.Path) != len(b.Path) {
+        return false
+    }
+    for i := range a.Path {
+        if a.Path[i] != b.Path[i] {
+            return false
+        }
+    }
+    return true
 }

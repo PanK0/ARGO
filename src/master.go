@@ -81,7 +81,7 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		sendCombinedRC(ctx, thisNode, crc_message, topology, disjointPaths)
 	} else if m.Content == mst_graph {
 		// Managed by node
-		g := exp2_ConvertCTopToGraph(&topology.ctop)
+		g := generateGraph(topology, mod_graph_byz)
 		event := g.GraphToString()
 		logEvent(thisNode.ID().String(), false, event)
 		g.PrintGraph()

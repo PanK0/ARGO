@@ -44,6 +44,25 @@ func (mc MessageContainer) deleteElement(msg_id string) {
 	delete(mc.messages, msg_id)
 }
 
+// RemoveMessage removes a specific message from the messages corresponding to its message ID.
+func (mc *MessageContainer) RemoveMessage(msg Message) {
+    msgs, exists := mc.messages[msg.ID]
+    if !exists {
+        return
+    }
+    newMsgs := make([]Message, 0, len(msgs))
+	for _, m := range msgs {
+		if !equalMessage(m, msg) {
+			newMsgs = append(newMsgs, m)
+		}
+	}
+    if len(newMsgs) > 0 {
+        mc.messages[msg.ID] = newMsgs
+    } else {
+        delete(mc.messages, msg.ID)
+    }
+}
+
 // Look for a node being in at least one path of at least one instance of msg_id
 // Used for BFT in Explorer2
 func (mc MessageContainer) lookInPaths(msg_id string, node_id string) bool {

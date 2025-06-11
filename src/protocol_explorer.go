@@ -54,11 +54,11 @@ func handleExplorer(s network.Stream, ctx context.Context, thisNode host.Host, t
 	// If m.sender is in cTop, then add it to uTop
 	if !top.ctop.checkInCTop(m.Source) {
 		// If part1 Else If part 2
-		if !top.utop.checkInUTop(m.Source, m.Neighbourhood) {
+		if !top.utop.checkInUTopNeigh(m.Source, m.Neighbourhood) {
 			// Add the sender to the visited set of m and send to all peers
 			m.Path = append(m.Path, m.Sender)
 			sendExplorer(ctx, thisNode, m)
-		} else if top.utop.checkInUTop(m.Source, m.Neighbourhood) && 
+		} else if top.utop.checkInUTopNeigh(m.Source, m.Neighbourhood) && 
 					len(Intersect(top.utop.tuples[m.Source][1], append(m.Path, m.Sender))) >= (2*MAX_BYZANTINES)+1 {
 
 			// Add m to cTop

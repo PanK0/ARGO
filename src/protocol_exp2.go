@@ -121,12 +121,12 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		del := BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
 		if  del {
 			deliveredMessages.Add(*m)
-			messageContainer.deleteElement(m.ID)
+			messageContainer.RemoveMessage(*m)
 		} else {
 			messageContainer.Add(*m)
 		}	
 		event := fmt.Sprintf("receive_del_EXP2 %s - Message coming from %s, source %s delivered? %t", m.Content,addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST), del)
-		logEvent(thisNode.ID().String(), PRINTOPTION, event)
+		logEvent(thisNode.ID().String(), false, event)
 		/*
 		Che succede se rimuovo la delivery dell'else?
 		I messaggi non vengono inoltrati correttamente e gli altri nodi non hanno la possibilità di calcolare i disjoint paths
@@ -219,10 +219,23 @@ func manageDelivery(messageContainer MessageContainer, deliveredMessages Message
 
     // Update the topology
     if !top.ctop.checkInCTop(m.Source) {
-        top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
+		if (top.utop.checkInUTop(m.Source) && isSubSet(m.Neighbourhood, top.utop.GetNeighbourhood(m.Source)) == 0) {
+			event := fmt.Sprintf("manageDelivery %s - Node %s stays in uTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+			logEvent(top.nodeID, PRINTOPTION, event)
+		} else {
+			top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
+			top.utop.RemoveElement(m.Source)
+			event := fmt.Sprintf("manageDelivery %s - Node %s moved from uTop to cTop", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+			logEvent(top.nodeID, PRINTOPTION, event)
+		}
+        
     } else if top.ctop.checkInCTop(m.Source) &&
         isSubSet(top.ctop.GetNeighbourhood(m.Source), m.Neighbourhood) == 0 {
         top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
+		// Remove m.Source from uTop
+		top.utop.RemoveElement(m.Sender)
+		event := fmt.Sprintf("manageDelivery %s - Node %s moved from uTop to cTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+		logEvent(top.nodeID, PRINTOPTION, event)
     } else if top.ctop.checkInCTop(m.Source) &&
         isSubSet(m.Neighbourhood, top.ctop.GetNeighbourhood(m.Source)) == 0 {
 		/*
@@ -235,16 +248,18 @@ func manageDelivery(messageContainer MessageContainer, deliveredMessages Message
         top.ctop.RemoveElement(m.Sender)
 		event := fmt.Sprintf("manageDelivery %s - Node %s removed from cTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(top.nodeID, PRINTOPTION, event)
-		return false
+		//return false
     }
 
     // Add the message to delivered messages
     for _, msg := range messages {
-        deliveredMessages.Add(msg)
-    }
+		deliveredMessages.Add(msg)
+	}
+   
+    
 
     // Remove the message from the message container
-    messageContainer.deleteElement(m.ID)
+    messageContainer.RemoveMessage(m)
 
 	return true
 }

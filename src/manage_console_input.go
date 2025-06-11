@@ -207,7 +207,7 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 		command, _ = findElement(inputData_words, cmd_graph)
 		if command == cmd_graph {
 			if command == cmd_graph {
-				g := exp2_ConvertCTopToGraph(&topology.ctop)
+				g := generateGraph(topology, mod_graph_byz)
 				event := g.GraphToString()
 				logEvent(h.ID().String(), false, event)
 				g.PrintGraph()

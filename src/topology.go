@@ -124,22 +124,22 @@ func ConvertCTopToGraph(ctop *CTop) *Graph {
 
 // CTop to Graph conversion with Byzantine fault tolerance
 // Ref @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina` - cpt. 9.4 - Explorer2 - pg 78 
-func exp2_ConvertCTopToGraph(ctop *CTop) *Graph {
+func exp2_ConvertCTopToGraph(top *Topology) *Graph {
     graph := NewGraph()
     vertices := make(map[string]bool)
 
 	// Rule 1: ∀<u, Γ(u)> ∈ cTopi ⇒ ∃u ∈ Vi
 	// Rule 1: A node u is inserted in Vi if the related entry is in cTopi
-    for node := range ctop.tuples {
+    for node := range top.ctop.tuples {
         vertices[node] = true
     }
 
 	// Rule 2: . ∀v ∈ Γ(u),<u, Γ(u)> ∈ cTop : X ← U u, |X| > f ⇒ ∃v ∈ Vi
 	// Rule 2: A node v is inserted in Vi if v is declared as neighbour by at least f+1 different nodes
-    for _, neighbours := range ctop.tuples {
+    for _, neighbours := range top.ctop.tuples {
         for _, neighbour := range neighbours {
             count := 0
-            for _, otherNeighbours := range ctop.tuples {
+            for _, otherNeighbours := range top.ctop.tuples {
                 if isInNeighbourhood(neighbour, otherNeighbours) {
                     count++
                 }
@@ -152,7 +152,7 @@ func exp2_ConvertCTopToGraph(ctop *CTop) *Graph {
 
 	// Rule 3: ∀<v, Γ(v)> ∈ cTopi, u ∈ Γ(v), u ∈ Vi ⇒ ∃(v, u) ∈ Ei
 	// Rule 3: An edge (v, u) is added in Ei if both nodes are in Vi and v declares u in its neighbourhood
-    for node, neighbours := range ctop.tuples {
+    for node, neighbours := range top.ctop.tuples {
         for _, neighbour := range neighbours {
             if vertices[node] && vertices[neighbour] {
                 graph.AddEdge(node, neighbour)
@@ -161,6 +161,66 @@ func exp2_ConvertCTopToGraph(ctop *CTop) *Graph {
     }
 
     return graph
+}
+
+// Convert CTop to Graph with byzantine detection, excluding nodes present as Sender in any message of messageContainer
+func exp2_ConvertCTopToGraph_BYZ(top *Topology) *Graph {
+    graph := NewGraph()
+    vertices := make(map[string]bool)
+
+    // Step 1: Find nodes that are present in unconfirmed topology uTop
+    excludeNodes := make(map[string]bool)
+	for node := range top.utop.tuples {
+		excludeNodes[node] = true
+	}
+
+    // Rule 1: ∀<u, Γ(u)> ∈ cTopi ⇒ ∃u ∈ Vi
+    for node := range top.ctop.tuples {
+        if !excludeNodes[node] {
+            vertices[node] = true
+        }
+    }
+
+    // Rule 2: . ∀v ∈ Γ(u),<u, Γ(u)> ∈ cTop : X ← U u, |X| > f ⇒ ∃v ∈ Vi
+    for _, neighbours := range top.ctop.tuples {
+        for _, neighbour := range neighbours {
+            if excludeNodes[neighbour] {
+                continue
+            }
+            count := 0
+            for _, otherNeighbours := range top.ctop.tuples {
+                if isInNeighbourhood(neighbour, otherNeighbours) {
+                    count++
+                }
+            }
+            if count > MAX_BYZANTINES {
+                vertices[neighbour] = true
+            }
+        }
+    }
+
+    // Rule 3: ∀<v, Γ(v)> ∈ cTopi, u ∈ Γ(v), u ∈ Vi ⇒ ∃(v, u) ∈ Ei
+    for node, neighbours := range top.ctop.tuples {
+        if !vertices[node] {
+            continue
+        }
+        for _, neighbour := range neighbours {
+            if vertices[neighbour] {
+                graph.AddEdge(node, neighbour)
+            }
+        }
+    }
+
+    return graph
+}
+
+// Convert CTop to Graph
+func generateGraph(top *Topology, excludeByz bool) *Graph {
+	if excludeByz {
+		return exp2_ConvertCTopToGraph_BYZ(top)
+	} else {
+		return exp2_ConvertCTopToGraph(top)
+	}
 }
 
 // Replaces the current cTop with a new one by loading a new graph
@@ -219,6 +279,11 @@ func (utop UTop) AddNeighbourhood(node string, neighbours []string) {
 	}
 }
 
+// RemoveElement removes an element from the CTop by its key.
+func (u *UTop) RemoveElement(key string) {
+    delete(u.tuples, key)
+}
+
 // Add a node's id to the visited set of the node node
 func (utop UTop) AddVisited(node string, visited string) {
 	// Check whether the visited is already in the visited set
@@ -259,7 +324,7 @@ func isInNeighbourhood(node string, list []string) bool {
 
 // Given a tuple (node, neighbouhood), check wether there is
 // a tuple in uTop with the same combination id, neighbourhood
-func (utop UTop) checkInUTop(node string, neighbourhood []string) bool {
+func (utop UTop) checkInUTopNeigh(node string, neighbourhood []string) bool {
 	
 	if len(utop.tuples[node][0]) != len(neighbourhood) {
 		return false
@@ -272,6 +337,11 @@ func (utop UTop) checkInUTop(node string, neighbourhood []string) bool {
 	}
 
 	return true
+}
+
+func (utop UTop) checkInUTop(node string) bool {
+	_, exists := utop.tuples[node]
+	return exists
 }
 
 // Get all the neighbourhood of a node

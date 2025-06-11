@@ -248,7 +248,7 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 	m.Neighbourhood = []string{}
 
 	// Create a graph
-	g := ConvertCTopToGraph(&top.ctop)
+	g := generateGraph(top, mod_graph_byz)
 	//g.PrintGraph()
 
 	// Find Disjoint Paths

@@ -96,10 +96,11 @@ const (
 	mod_crc_exp		= "EXP"
 	mod_crc_rou		= "ROU"
 	mod_crc_cnt		= "SEND"
+	mod_graph_byz	= true
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/topology_full.csv"	// Path to the topology file
+	topology_path 	= "../config/topology2.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"
