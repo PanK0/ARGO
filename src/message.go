@@ -4,6 +4,7 @@ import "fmt"
 
 type Message struct {
 	ID				string			`json:"id"`
+	InstanceID		string			`json:"instanceid"`
 	Type 			string			`json:"type"`
 	Sender 			string			`json:"sender"`
 	Source 			string			`json:"source"`
@@ -15,6 +16,7 @@ type Message struct {
 
 func msgToString(m Message) string {
 	id := fmt.Sprintf("MSG ID:		%s\n", m.ID)
+	iid:= fmt.Sprintf("Instance ID:	%s\n", m.InstanceID)
 	ty := fmt.Sprintf("TYPE:		%s\n", m.Type)
 	se := fmt.Sprintf("SENDER:		%s\n", m.Sender)
 	so := fmt.Sprintf("SOURCE:		%s\n", m.Source)
@@ -56,7 +58,7 @@ func msgToString(m Message) string {
 		ne = ""
 	}
 
-	msg := id + ty + se + so + ta + co + ne + pa
+	msg := id + iid + ty + se + so + ta + co + ne + pa
 	
 	return msg
 }

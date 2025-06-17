@@ -311,7 +311,7 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 				var visitedSet []string
 				var crc_message Message = 
 				Message{
-					ID: msgid, 
+					ID: msgid,
 					Type: "", 
 					Sender: "", 
 					Source: getNodeAddress(h, ADDR_DEFAULT), 
@@ -405,7 +405,7 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 			var visitedSet []string
 			var fake_message Message = 
 			Message{
-				ID: msgid, 
+				ID: msgid,
 				Type: TYPE_CRC_EXP, 
 				Sender: getNodeAddress(h, ADDR_DEFAULT), 
 				Source: topology.GetRandomNeighbour(), 

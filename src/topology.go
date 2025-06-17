@@ -124,9 +124,17 @@ func ConvertCTopToGraph(ctop *CTop) *Graph {
 
 // CTop to Graph conversion with Byzantine fault tolerance
 // Ref @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina` - cpt. 9.4 - Explorer2 - pg 78 
-func exp2_ConvertCTopToGraph(top *Topology) *Graph {
+func exp2_ConvertCTopToGraph(top *Topology, autoRec bool) *Graph {
     graph := NewGraph()
     vertices := make(map[string]bool)
+
+	// if autoRec is true, we load the neighbourhood of this node
+	if autoRec {
+		// Load the neighbourhood of the current node
+		for _, neighbour := range top.ctop.GetNeighbourhood(top.nodeID) {
+			vertices[neighbour] = true
+		}
+	}
 
 	// Rule 1: ∀<u, Γ(u)> ∈ cTopi ⇒ ∃u ∈ Vi
 	// Rule 1: A node u is inserted in Vi if the related entry is in cTopi
@@ -163,64 +171,10 @@ func exp2_ConvertCTopToGraph(top *Topology) *Graph {
     return graph
 }
 
-// Convert CTop to Graph with byzantine detection, excluding nodes present as Sender in any message of messageContainer
-func exp2_ConvertCTopToGraph_BYZ(top *Topology) *Graph {
-    graph := NewGraph()
-    vertices := make(map[string]bool)
-
-    // Step 1: Find nodes that are present in unconfirmed topology uTop
-    excludeNodes := make(map[string]bool)
-	for node := range top.utop.tuples {
-		excludeNodes[node] = true
-	}
-
-    // Rule 1: ∀<u, Γ(u)> ∈ cTopi ⇒ ∃u ∈ Vi
-    for node := range top.ctop.tuples {
-        if !excludeNodes[node] {
-            vertices[node] = true
-        }
-    }
-
-    // Rule 2: . ∀v ∈ Γ(u),<u, Γ(u)> ∈ cTop : X ← U u, |X| > f ⇒ ∃v ∈ Vi
-    for _, neighbours := range top.ctop.tuples {
-        for _, neighbour := range neighbours {
-            if excludeNodes[neighbour] {
-                continue
-            }
-            count := 0
-            for _, otherNeighbours := range top.ctop.tuples {
-                if isInNeighbourhood(neighbour, otherNeighbours) {
-                    count++
-                }
-            }
-            if count > MAX_BYZANTINES {
-                vertices[neighbour] = true
-            }
-        }
-    }
-
-    // Rule 3: ∀<v, Γ(v)> ∈ cTopi, u ∈ Γ(v), u ∈ Vi ⇒ ∃(v, u) ∈ Ei
-    for node, neighbours := range top.ctop.tuples {
-        if !vertices[node] {
-            continue
-        }
-        for _, neighbour := range neighbours {
-            if vertices[neighbour] {
-                graph.AddEdge(node, neighbour)
-            }
-        }
-    }
-
-    return graph
-}
-
 // Convert CTop to Graph
-func generateGraph(top *Topology, excludeByz bool) *Graph {
-	if excludeByz {
-		return exp2_ConvertCTopToGraph_BYZ(top)
-	} else {
-		return exp2_ConvertCTopToGraph(top)
-	}
+func generateGraph(top *Topology, autoRecognizeNeighbours bool) *Graph {
+	return exp2_ConvertCTopToGraph(top, autoRecognizeNeighbours)
+	
 }
 
 // Replaces the current cTop with a new one by loading a new graph

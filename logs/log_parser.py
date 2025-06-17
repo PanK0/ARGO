@@ -1,3 +1,4 @@
+import shutil
 import pandas as pd
 import re
 import glob
@@ -99,6 +100,13 @@ def clear_logs():
     else:
         print(f"Deleted {deleted_files} files.")
 
+# Function to replace all the topology files from the main folder ../ to ../config/
+def replace_topology_files():
+    main_folder = "../"
+    config_folder = "../config/"
+    for file in glob.glob(os.path.join(main_folder, "topology*.csv")):
+        shutil.copy(file, config_folder)
+        print(f"Replaced: {file} -> {config_folder}")
 
 # Main execution
 if __name__ == "__main__":
@@ -106,6 +114,7 @@ if __name__ == "__main__":
     # Check if the script was run with "clear"
     if len(sys.argv) > 1 and sys.argv[1] == "clear":
         clear_logs()
+        replace_topology_files()
         sys.exit()
 
     # Find all log files in the directory
