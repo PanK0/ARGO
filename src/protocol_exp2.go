@@ -44,7 +44,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 	// Apply byzantine modifications
 	// returns true if byzantine is type 2 [drop messages], so this function must be stopped
 	// returns false otherwise and applies changes to the message
-	if applyByzantine(thisNode, m) {return nil}
+	//if applyByzantine(thisNode, m) {return nil}
 
 	// Start counting BFT Logics
 	timestamp_start := time.Now()
@@ -67,7 +67,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 				// Only forward the message if p is not in m.path or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
 				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()) {
 					m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
-					send(ctx, thisNode, p, *m, PROTOCOL_EXP2)					
+					send(ctx, thisNode, p, *m, PROTOCOL_CRC)					
 				} 
 			}
 		}
@@ -83,48 +83,6 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		event := fmt.Sprintf("receive_del_EXP2 %s - Message coming from %s, source %s delivered? %t", m.Content,addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST), del)
 		logEvent(thisNode.ID().String(), false, event)
 	}
-
-
-	/*
-	if len(deliveredMessages.Get(m.ID)) == 0 {
-		// if m arrived with a void path, means that m.Sender delivered the message
-		m.Target = getNodeAddress(thisNode, ADDR_DEFAULT)
-		messageContainer.Add(*m)
-
-		// Modification 1
-		if m.Source == m.Sender && len(m.Path) == 1 && m.Path[0] == m.Source {
-			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
-		} else if len(messageContainer.countNodeDisjointPaths_intersection(m.ID)) > MAX_BYZANTINES  {
-			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
-		} else {
-			// Send the message to all the nodes who never ever received the message
-			for _, p := range thisNode.Network().Peers() {
-
-				if p.String() == extractPeerIDFromMultiaddr(master_address) {
-					continue // Do not send the message to the master node
-				}
-
-				// Only forward the message if p is not in m.path or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
-				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()) {
-					m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
-					send(ctx, thisNode, p, *m, PROTOCOL_EXP2)					
-				} 
-			}
-		}
-	} else {
-		del := BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
-		if  del {
-			deliveredMessages.Add(*m)
-			messageContainer.RemoveMessage(*m)
-		} else {
-			messageContainer.Add(*m)
-		}	
-		event := fmt.Sprintf("receive_del_EXP2 %s - Message coming from %s, source %s delivered? %t", m.Content,addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST), del)
-		logEvent(thisNode.ID().String(), false, event)
-		
-	}
-
-	*/
 
 	timestamp_end := time.Now()
 	event = fmt.Sprintf("BFT_execution %s - performed in time %f seconds", m.Content, timestamp_end.Sub(timestamp_start).Seconds())
@@ -232,39 +190,6 @@ func manageDelivery(messageContainer MessageContainer, deliveredMessages Message
 		return false
 	}
 	
-
-
-	/*
-    // Update the topology
-    if !top.ctop.checkInCTop(m.Source) {
-		if (top.utop.checkInUTop(m.Source) && isSubSet(m.Neighbourhood, top.utop.GetNeighbourhood(m.Source)) == 0) {
-			event := fmt.Sprintf("manageDelivery %s - Node %s stays in uTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
-			logEvent(top.nodeID, PRINTOPTION, event)
-		} else {
-			top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
-			top.utop.RemoveElement(m.Source)
-			event := fmt.Sprintf("manageDelivery %s - Node %s moved from uTop to cTop", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
-			logEvent(top.nodeID, PRINTOPTION, event)
-		}
-        
-    } else if top.ctop.checkInCTop(m.Source) &&
-        isSubSet(top.ctop.GetNeighbourhood(m.Source), m.Neighbourhood) == 0 {
-        top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
-		// Remove m.Source from uTop
-		top.utop.RemoveElement(m.Sender)
-		event := fmt.Sprintf("manageDelivery %s - Node %s moved from uTop to cTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
-		logEvent(top.nodeID, PRINTOPTION, event)
-    } else if top.ctop.checkInCTop(m.Source) &&
-        isSubSet(m.Neighbourhood, top.ctop.GetNeighbourhood(m.Source)) == 0 {
-	
-		top.utop.AddElement(m.Sender, top.ctop.GetNeighbourhood(m.Sender), m.Path)
-        top.ctop.RemoveElement(m.Sender)
-		event := fmt.Sprintf("manageDelivery %s - Node %s removed from cTop", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
-		logEvent(top.nodeID, PRINTOPTION, event)
-		//return false
-    }
-		*/
-
     // Add the message to delivered messages
     for _, msg := range messages {
 		deliveredMessages.Add(msg)
@@ -317,7 +242,7 @@ func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
 		}
 
         if !deliveredMessages.lookInPaths(m.ID, p.String()) {
-            stream, err := openStream(ctx, thisNode, p, PROTOCOL_EXP2)
+            stream, err := openStream(ctx, thisNode, p, PROTOCOL_CRC)
             if err != nil {
                 printError(err)
                 continue
