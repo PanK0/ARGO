@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
 	"github.com/libp2p/go-libp2p/core/network"
@@ -12,14 +13,84 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
+// function to manage an EXP2 message
+func receive_EXP2(ctx context.Context, thisNode host.Host, m *Message, top *Topology,
+		messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
+	
+	m.Content = time.Now().Format("05.00000")
+
+	inst := addressToPrint(m.Sender, NODE_PRINTLAST)
+	m.InstanceID += "_"+inst
+
+	event := fmt.Sprintf("receive_EXP2 %s - Handling message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+	logEvent(thisNode.ID().String(), PRINTOPTION, event)
+
+	// TO DO: When the local neighbourhood changes, 
+	// relay all received messages with m.ID to the new neighbours
+
+	// Add the sender to the path
+	m.Path = append(m.Path, m.Sender)
+
+	marshalledMessage, err := json.Marshal(m)
+	if err != nil {
+		printError(err)
+		return nil
+	}
+	printMessage(string(marshalledMessage))
+	
+	// Lock to ensure only one execution at a time
+	explorer2Mutex.Lock()
+	defer explorer2Mutex.Unlock()
+
+	// Start counting BFT Logics
+	timestamp_start := time.Now()
+
+	// Modification 4: check whether m is in deliveredMessages
+	if len(deliveredMessages.Get(m.ID)) == 0 {
+		m.Target = getNodeAddress(thisNode, ADDR_DEFAULT)
+		messageContainer.Add(*m)
+
+		// Modification 1: check whether source is equal to sender
+		if m.Source == m.Sender && len(m.Path) == 1 && m.Path[0] == m.Source {
+			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
+		} else if len(messageContainer.GetDisjointPathsBrute(m.ID)) > MAX_BYZANTINES  {
+			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
+		} else {
+			// Send the message to all the nodes who never ever received the message
+			for _, p := range thisNode.Network().Peers() {
+				if p.String() == extractPeerIDFromMultiaddr(master_address) {continue}
+
+				// Only forward the message if p is not in m.path or if it doesen't exist in any of the paths of the instances of m.ID that are present in messageContainer
+				if !messageContainer.lookInPaths(m.ID, p.String()) && !contains(m.Path, p.String()) {
+					m.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
+					send(ctx, thisNode, p, *m, PROTOCOL_CRC)					
+				} 
+			}
+		}
+	} else {
+		// Enters this if the message has already been delivered by the node
+		del := BFT_deliver(*messageContainer, *deliveredMessages, *m, top)
+		if  del {
+			deliveredMessages.Add(*m)
+			messageContainer.RemoveMessage(*m)
+		} else {
+			messageContainer.Add(*m)
+		}
+		/*
+		event := fmt.Sprintf("receive_del_EXP2 %s - Message coming from %s, source %s delivered? %t", m.Content,addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST), del)
+		logEvent(thisNode.ID().String(), false, event)
+		*/
+	}
+
+	timestamp_end := time.Now()
+	event = fmt.Sprintf("BFT_execution %s - performed in time %f seconds", m.Content, timestamp_end.Sub(timestamp_start).Seconds())
+	logEvent(thisNode.ID().String(), false, event)
+	return nil
+}
+
 // Function to manage a CNT message
-//lint:ignore U1000 Unused function for future use
 func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
 	messageContainer.Add(*m)
-	/*
-	event := fmt.Sprintf("receive_CRC_CNT - msg from %s added to MessageContainer", addressToPrint(m.Sender, NODE_PRINTLAST))
-	logEvent(thisNode.ID().String(), PRINTOPTION, event)
-	*/
 	
 	if m.Target == getNodeAddress(thisNode, ADDR_DEFAULT) {
 		event := fmt.Sprintf("receive_CNT - Content from %s received from %s!", addressToPrint(m.Source, NODE_PRINTLAST), addressToPrint(m.Sender, NODE_PRINTLAST))
@@ -76,13 +147,7 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 
 // Function to manage a ROU message
 func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topology, messageContainer *MessageContainer, disjointPaths *DisjointPaths) error {
-	disjointPaths.mu.Lock()
-	defer disjointPaths.mu.Unlock()
 	messageContainer.Add(*m)
-	/*
-	event := fmt.Sprintf("receive_CRC_ROU - msg from %s added to MessageContainer", addressToPrint(m.Sender, NODE_PRINTLAST))
-	logEvent(thisNode.ID().String(), PRINTOPTION, event)
-	*/
 
 	if m.Target == getNodeAddress(thisNode, ADDR_DEFAULT) {
 		// reverse the path and add it into DisjointPaths
@@ -170,7 +235,7 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 	if applyByzantine(thisNode, &m) {return nil}
 
 	if m.Type == TYPE_CRC_EXP {
-		err = receive_EXP(ctx, thisNode, &m, top, messageContainer, deliveredMessages)
+		err = receive_EXP2(ctx, thisNode, &m, top, messageContainer, deliveredMessages)
 		if err != nil {
 			printError(err)
 		}
@@ -189,6 +254,48 @@ func handleCombinedRC(s network.Stream, ctx context.Context, thisNode host.Host,
 	return nil
 }
 
+func sendEXP2(ctx context.Context, thisNode host.Host, exp_msg Message) {
+	
+	// Add the sender
+	exp_msg.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
+	dataBytes, err := json.Marshal(exp_msg)
+	if err != nil {
+		printError(err)
+	}
+	msg := string(dataBytes)
+
+	// Cycle through the peers connected to the current node
+	for _, p := range thisNode.Network().Peers() {
+
+		if p.String() == extractPeerIDFromMultiaddr(master_address) {
+			continue // Do not send the message to the master node
+		}
+
+		// If the peer p is already in the path of the message, then do not forward the message 
+		// then open a stream with p and send the message
+		if (contains(exp_msg.Path, p.String())) {
+			printShell()
+		} else {
+			stream, err := openStream(ctx, thisNode, p, PROTOCOL_CRC)
+			if err != nil {
+				printError(err)
+			}
+
+			message := fmt.Sprintf("%s\n", msg)
+
+			// Write the message on the stream
+			_, err = stream.Write([]byte(message))
+			if err != nil {
+				printError(err)
+			}
+			stream.Close() // <-- chiudi sempre lo stream dopo la scrittura
+
+			event := fmt.Sprintf("send_EXP2 %s - Forwarded message from %s to node %s", exp_msg.Content, addressToPrint(exp_msg.Sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+		}
+	}
+}
+
 // Send function for CombinedRC ROU messages
 func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
@@ -201,7 +308,8 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 	//g.PrintGraph()
 
 	// Find Disjoint Paths
-	disjointPaths.MergeDP(g.GetDisjointPaths(m.Target, m.Source))
+	disjointPaths.MergeDP(g.GetDisjointPaths(m.Source, m.Target))
+	fmt.Println(disjointPaths.toString())
 
 	// Send routed messages to target node
 	for _, path := range disjointPaths.paths[m.Target] {
@@ -313,7 +421,7 @@ func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topol
 func sendCombinedRC(ctx context.Context, thisNode host.Host, m Message, top *Topology, disjointPaths *DisjointPaths) {
 
 	if m.Type == TYPE_CRC_EXP {
-		sendExplorer2(ctx, thisNode, m, PROTOCOL_CRC)
+		sendEXP2(ctx, thisNode, m)
 	} else if m.Type == TYPE_CRC_ROU {
 		send_CRC_ROU(ctx, thisNode, m, top, disjointPaths)
 	} else if m.Type == TYPE_CRC_CNT {

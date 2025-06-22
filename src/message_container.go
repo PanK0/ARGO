@@ -149,15 +149,137 @@ func (mc *MessageContainer) countNodeDisjointPaths_intersection(msg_id string) [
 	return disjointPaths
 }
 
-// Count node disjoint paths in relation to a node ID
-func (mc *MessageContainer) findDisjointPaths(node_id string, djp DisjointPaths) {
-	
-	for msgid, messages := range mc.messages {
-		if messages[0].Source == node_id {
-			disjointpaths := mc.countNodeDisjointPaths_intersection(msgid)
-			for _, dp := range disjointpaths {
-				djp.Add(node_id, dp)
-			}
-		}
-	}
+// GetDisjointPathsMinCut finds the maximum set of node-disjoint paths
+// among all Message.Path of messages[msg_id], using Edmonds–Karp (BFS).
+func (mc *MessageContainer) GetDisjointPathsMinCut(msg_id string) [][]string {
+    messages := mc.Get(msg_id)
+    if len(messages) == 0 {
+        return nil
+    }
+    // build the connectivity graph from all paths
+    g := NewGraph()
+    for _, msg := range messages {
+        for i := 0; i < len(msg.Path)-1; i++ {
+            g.AddEdge(msg.Path[i], msg.Path[i+1])
+        }
+    }
+    source := messages[0].Sender
+    sink   := messages[0].Target
+
+    // build residual graph: bool capacity = true/false
+    residual := make(map[string]map[string]bool, len(g.nodes))
+    for u := range g.nodes {
+        residual[u] = make(map[string]bool, len(g.adjList[u]))
+        for _, v := range g.adjList[u] {
+            residual[u][v] = true
+        }
+    }
+
+    usedNodes := make(map[string]bool)    // to enforce node-disjoint (except source/sink)
+    parent    := make(map[string]string)  // to reconstruct BFS augmenting path
+
+    var result [][]string
+    for {
+        // --- BFS to find an augmenting path that avoids usedNodes ---
+        for k := range parent {
+            delete(parent, k)
+        }
+        visited := make(map[string]bool, len(g.nodes))
+        queue   := []string{source}
+        visited[source] = true
+
+        found := false
+        for len(queue) > 0 && !found {
+            u := queue[0]; queue = queue[1:]
+            for _, v := range g.adjList[u] {
+                if !residual[u][v] || visited[v] {
+                    continue
+                }
+                // skip any intermediate node already used
+                if v != source && v != sink && usedNodes[v] {
+                    continue
+                }
+                parent[v] = u
+                if v == sink {
+                    found = true
+                    break
+                }
+                visited[v] = true
+                queue = append(queue, v)
+            }
+        }
+        if !found {
+            break
+        }
+
+        // --- reconstruct the path & update residual capacities ---
+        path := []string{}
+        for v := sink; v != source; v = parent[v] {
+            u := parent[v]
+            residual[u][v] = false  // consume forward edge
+            residual[v][u] = true   // add reverse edge
+            path = append([]string{v}, path...)
+        }
+        path = append([]string{source}, path...)
+
+        // mark intermediate nodes as used
+        for _, n := range path {
+            if n != source && n != sink {
+                usedNodes[n] = true
+            }
+        }
+
+        result = append(result, path)
+    }
+
+    return result
+}
+
+
+// GetDisjointPathsBrute tries every subset of message paths and
+// returns the largest node-disjoint collection (NP-complete approach).
+func (mc *MessageContainer) GetDisjointPathsBrute(msg_id string) [][]string {
+    messages := mc.Get(msg_id)
+    n := len(messages)
+    if n == 0 {
+        return nil
+    }
+
+    var best [][]string
+
+    // iterate all non-empty subsets via bitmask
+    for mask := 1; mask < (1 << n); mask++ {
+        used := make(map[string]bool)
+        var candidate [][]string
+        ok := true
+
+        for i := 0; i < n; i++ {
+            if mask&(1<<i) == 0 {
+                continue
+            }
+            path := messages[i].Path
+            // check node-disjointness
+            for _, node := range path {
+                if used[node] {
+                    ok = false
+                    break
+                }
+            }
+            if !ok {
+                break
+            }
+            // accept this path
+            candidate = append(candidate, path)
+            for _, node := range path {
+                used[node] = true
+            }
+        }
+
+        // if valid and larger than previous best, keep it
+        if ok && len(candidate) > len(best) {
+            best = candidate
+        }
+    }
+
+    return best
 }

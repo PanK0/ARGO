@@ -108,6 +108,57 @@ def replace_topology_files():
         shutil.copy(file, config_folder)
         print(f"Replaced: {file} -> {config_folder}")
 
+def update_log_output_with_node_letters():
+    nodes_file = "nodes.txt"
+    log_output_file = "log_output.xlsx"
+
+    # Check if nodes.txt exists
+    if not os.path.isfile(nodes_file):
+        print("nodes.txt not found.")
+        return
+
+    # Parse nodes.txt to build mapping {node_id: letter}
+    mapping = {}
+    with open(nodes_file, "r") as f:
+        for line in f:
+            match = re.search(r"Topology updated: node (\w) -> (\w{5})", line)
+            if match:
+                letter, node_id = match.group(1), match.group(2)
+                mapping[node_id] = letter
+
+    if not mapping:
+        print("No node mappings found in nodes.txt.")
+        return
+
+    # Read all sheets from log_output.csv (if multi-sheet, e.g. Excel)
+    try:
+        # Try Excel first (multi-sheet)
+        xls = pd.ExcelFile(log_output_file)
+        sheets = {sheet: xls.parse(sheet) for sheet in xls.sheet_names}
+        is_excel = True
+    except Exception:
+        # Fallback to single CSV
+        df = pd.read_csv(log_output_file, dtype=str)
+        sheets = {"Sheet1": df}
+        is_excel = False
+
+    # Replace node_id with node_id + " " + letter in all sheets
+    for sheet_name, df in sheets.items():
+        for node_id, letter in mapping.items():
+            df.replace(node_id, f"{node_id} {letter}", inplace=True)
+        sheets[sheet_name] = df
+
+    # Write back the updated data
+    if is_excel:
+        with pd.ExcelWriter(log_output_file, engine='openpyxl', mode='w') as writer:
+            for sheet_name, df in sheets.items():
+                df.to_excel(writer, sheet_name=sheet_name, index=False)
+    else:
+        # Single CSV
+        sheets["Sheet1"].to_csv(log_output_file, index=False)
+
+    print("log_output.csv updated with node letters.")
+
 # Main execution
 if __name__ == "__main__":
 
@@ -132,6 +183,9 @@ if __name__ == "__main__":
 
         # Save to Excel and CSV
         save_to_files(event_table, full_log)
+
+        # Update log output with node letters
+        update_log_output_with_node_letters()
 
         # Plot event timeline
         # plot_event_timeline(full_log)

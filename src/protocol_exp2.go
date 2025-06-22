@@ -41,11 +41,6 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 	explorer2Mutex.Lock()
 	defer explorer2Mutex.Unlock()
 
-	// Apply byzantine modifications
-	// returns true if byzantine is type 2 [drop messages], so this function must be stopped
-	// returns false otherwise and applies changes to the message
-	//if applyByzantine(thisNode, m) {return nil}
-
 	// Start counting BFT Logics
 	timestamp_start := time.Now()
 
@@ -57,7 +52,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		// Modification 1: check whether source is equal to sender
 		if m.Source == m.Sender && len(m.Path) == 1 && m.Path[0] == m.Source {
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
-		} else if len(messageContainer.countNodeDisjointPaths_intersection(m.ID)) > MAX_BYZANTINES  {
+		} else if len(messageContainer.GetDisjointPathsBrute(m.ID)) > MAX_BYZANTINES  {
 			BFT_deliver_and_relay(ctx, thisNode, *messageContainer, *deliveredMessages, *m, top)
 		} else {
 			// Send the message to all the nodes who never ever received the message
@@ -80,8 +75,10 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		} else {
 			messageContainer.Add(*m)
 		}
+		/*
 		event := fmt.Sprintf("receive_del_EXP2 %s - Message coming from %s, source %s delivered? %t", m.Content,addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST), del)
 		logEvent(thisNode.ID().String(), false, event)
+		*/
 	}
 
 	timestamp_end := time.Now()

@@ -162,6 +162,12 @@ func applyByzantine(thisNode host.Host, m *Message) bool {
 					event := fmt.Sprintf("byzantine %s - Message from %s altered. Swapped %s and %s in path.", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Path[j], NODE_PRINTLAST), addressToPrint(m.Path[i], NODE_PRINTLAST))
 					logEvent(thisNode.ID().String(), PRINTOPTION, event)
 				}
+			} else if bz.Alterations == BYZ_ALTER_ID {
+				if len(m.ID) > 0 {
+					m.ID = m.ID[:len(m.ID)-1]
+					event := fmt.Sprintf("byzantine %s - ID of message from %s altered. ", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+					logEvent(thisNode.ID().String(), PRINTOPTION, event)
+				}
 			}
 		}
 	}

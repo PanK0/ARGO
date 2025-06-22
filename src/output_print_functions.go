@@ -17,7 +17,7 @@ func printShell() {
 func printError(err error) {
 	header := fmt.Sprintf("\n%s!!!!----- ERROR -----!!!!%s\n", RED, RESET)	
 	fmt.Println(header)
-	panic(err)
+	//panic(err)
 }
 
 // Message to print when starting a node

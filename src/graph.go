@@ -126,84 +126,87 @@ func (g *Graph) FordFulkerson(source, sink string) int {
 }
 
 
-// Given a graph, a source node and a sink node as input, return a DisjointPaths object using the Ford-Fulkerson algorithm
+// GetDisjointPaths implements Edmonds-Karp algorithm to find node-disjoint paths
 func (g *Graph) GetDisjointPaths(source, sink string) *DisjointPaths {
-    dp := NewDisjointPaths()
-    residualGraph := make(map[string]map[string]bool)
-    for u := range g.nodes {
-        residualGraph[u] = make(map[string]bool)
-        for _, v := range g.adjList[u] {
-            residualGraph[u][v] = true
-        }
-    }
-    usedNodes := make(map[string]bool) // Track used nodes (except source/sink)
-    parent := make(map[string]string)
-    for {
-        // Custom DFS that skips used nodes (except source/sink)
-        found := g.dfsNodeDisjoint(residualGraph, source, sink, parent, usedNodes)
-        if !found {
-            break
-        }
-        // Build the path
-        path := []string{}
-        v := sink
-        for v != source {
-            u := parent[v]
-            residualGraph[u][v] = false
-            residualGraph[v][u] = true
-            path = append(path, v)
-            v = u
-        }
-        path = append(path, source)
-        // Reverse the path
-        /*
-		for i, j := 0, len(path)-1; i < j; i, j = i+1, j-1 {
-            path[i], path[j] = path[j], path[i]
-        }
-		*/
-        // Mark intermediate nodes as used
-        for _, n := range path {
-            if n != source && n != sink {
-                usedNodes[n] = true
-            }
-        }
-        dp.Add(source, path)
-    }
-    return dp
+	dp := NewDisjointPaths()
+	residualGraph := make(map[string]map[string]bool)
+	for u := range g.nodes {
+		residualGraph[u] = make(map[string]bool)
+		for _, v := range g.adjList[u] {
+			residualGraph[u][v] = true
+		}
+	}
+
+	usedNodes := make(map[string]bool)
+	parent := make(map[string]string)
+
+	for {
+		// Use BFS instead of DFS for Edmonds-Karp
+		found := bfsNodeDisjoint(g, residualGraph, source, sink, parent, usedNodes)
+		if !found {
+			break
+		}
+
+		// Reconstruct path
+		path := []string{}
+		v := sink
+		for v != source {
+			u := parent[v]
+			residualGraph[u][v] = false
+			residualGraph[v][u] = true
+			path = append([]string{v}, path...)
+			v = u
+		}
+		path = append([]string{source}, path...)
+
+		// Mark intermediate nodes as used
+		for _, node := range path {
+			if node != source && node != sink {
+				usedNodes[node] = true
+			}
+		}
+
+		dp.Add(sink, path)
+	}
+
+	return dp
 }
 
+
 // Helper DFS for node-disjoint paths
-func (g *Graph) dfsNodeDisjoint(residualGraph map[string]map[string]bool, source, sink string, parent map[string]string, usedNodes map[string]bool) bool {
-    for k := range parent {
-        delete(parent, k)
-    }
-    visited := make(map[string]bool)
-    stack := []string{source}
-    visited[source] = true
-    for len(stack) > 0 {
-        u := stack[len(stack)-1]
-        stack = stack[:len(stack)-1]
-        for _, v := range g.adjList[u] {
-            if visited[v] {
-                continue
-            }
-            if !residualGraph[u][v] {
-                continue
-            }
-            // Skip nodes already used in previous paths (except sink)
-            if v != sink && v != source && usedNodes[v] {
-                continue
-            }
-            parent[v] = u
-            if v == sink {
-                return true
-            }
-            stack = append(stack, v)
-            visited[v] = true
-        }
-    }
-    return false
+func bfsNodeDisjoint(g *Graph, residualGraph map[string]map[string]bool, source, sink string, parent map[string]string, usedNodes map[string]bool) bool {
+	for k := range parent {
+		delete(parent, k)
+	}
+	visited := make(map[string]bool)
+	queue := []string{source}
+	visited[source] = true
+
+	for len(queue) > 0 {
+		u := queue[0]
+		queue = queue[1:]
+
+		for _, v := range g.adjList[u] {
+			if visited[v] || !residualGraph[u][v] {
+				continue
+			}
+			// Skip used intermediate nodes
+			if v != source && v != sink && usedNodes[v] {
+				continue
+			}
+
+			parent[v] = u
+			if v == sink {
+				return true
+			}
+			visited[v] = true
+			queue = append(queue, v)
+		}
+	}
+
+	return false
 }
+
 
 
 // RemoveNode temporarily removes a node from the graph

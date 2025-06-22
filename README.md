@@ -288,7 +288,7 @@ Alterations=neighbourhood
 - Type1, Type2 and Type3 entries are trivial: they accept a boolean value true/false
 - Delay: accepts an int that indicates the number of milliseconds of delay to introduce in a Type1 byzantine
 - DropRate: accepts a float r, with 0 < r < 1, that indicates the probability to drop a message in a Type2 byzantine
-- Alterations: accepts a string, that may be `neighbourhood` or `path`. This randomly alterates the content of the specified field of the message by deleting an element. It can also be `swap`, that swaps two nodes in the path of a message.
+- Alterations: accepts a string, that may be `neighbourhood` or `path`. This randomly alterates the content of the specified field of the message by deleting an element. It can also be `swap`, that swaps two nodes in the path of a message or `msgid` to remove the last char from the msg ID.
 
 A Byzantine can also generate a spurious message, I.E. a message with a random source that is different from the actual byzantine node and a void path. To do so, **after activating a byzantine**, give the command:
 

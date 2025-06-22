@@ -5,7 +5,9 @@ import subprocess
 
 # Array of node identifiers (cycling through these in auto mode)
 nodes4 = ["A", "B", "C", "W"]
+nodes5 = ["A", "B", "C", "D", "W"]
 nodes8 = ["A", "B", "C", "D", "E", "F", "G", "W"]
+nodes9 = ["A", "B", "C", "D", "E", "F", "X", "Y", "Z"]
 
 def open_terminals(n_shells, command, automod=None, address=None):
     """
@@ -18,8 +20,12 @@ def open_terminals(n_shells, command, automod=None, address=None):
     """
     if n_shells == 4:
         nodes_l = nodes4
+    elif n_shells == 5:
+        nodes_l = nodes5
     elif n_shells == 8:
         nodes_l = nodes8
+    elif n_shells == 9:
+        nodes_l = nodes9
     else:
         print("Error: n_shells must be 4 or 8 when using automod.")
         sys.exit(1)
