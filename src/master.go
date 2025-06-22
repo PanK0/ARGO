@@ -189,7 +189,7 @@ func parseCommandString(input string) map[string]string {
 	return result
 }
 
-// Send this node's log file to the master node
+// Send this node's topology file to the master node
 func sendTopology(ctx context.Context, thisNode host.Host, m Message) error {
     // Prepare topology file
 	topfile := topology_path

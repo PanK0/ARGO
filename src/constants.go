@@ -85,6 +85,7 @@ const (
 	mod_help_prot	= "PROTOCOLS"
 	mod_help_msg	= "MSG"
 	mod_help_net	= "NETWORK"
+	mod_help_mst	= "MASTER"
 	mod_show_del	= "DEL"
 	mod_show_rcv	= "RCV"
 	mod_deliver_all	= "ALL"

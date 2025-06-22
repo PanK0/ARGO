@@ -31,6 +31,7 @@ func printStartMessage(h host.Host, help_mod string) {
 		printHelp_ProtocolInfo(h)
 		printHelp_MessagesInfo()
 		printHelp_NetworkInfo()
+		printHelp_MasterInfo()
 		printHelp()
 		fmt.Printf("%s", footer)
 
@@ -62,13 +63,19 @@ func printStartMessage(h host.Host, help_mod string) {
 		printHelp_ProtocolInfo(h)
 		fmt.Printf("%s", footer)
 
+	} else if help_mod == mod_help_mst {
+		header := fmt.Sprintf("\n%s------- MASTER -------%s\n", color_info, RESET)
+		footer := fmt.Sprintf("%s-------------------%s\n", color_info, RESET)
+		fmt.Printf("%s", header)
+		printHelp_MasterInfo()
+		fmt.Printf("%s", footer)
+
 	} else if help_mod == mod_help_help {
 		header := fmt.Sprintf("\n%s------- HELP -------%s\n", color_info, RESET)
 		footer := fmt.Sprintf("%s---------------------%s\n", color_info, RESET)
 		fmt.Printf("%s", header)
 		printHelp()
 		fmt.Printf("%s", footer)
-
 
 	} else {
 
@@ -91,10 +98,12 @@ func printHelp() {
 		"\t-help MSG \n\n" +
 		"\t%sPrint network help panel%s \n" +
 		"\t-help NETWORK \n\n" +
+		"\t%sPrint master help panel%s \n" +
+		"\t-help MASTER \n\n" +
 		"\t%sPrint help list help panel%s \n" +
 		"\t-help HELP \n",
 		color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET,
-		color_info, RESET, color_info, RESET, color_info, RESET,
+		color_info, RESET, color_info, RESET, color_info, RESET, color_info, RESET,
 	)
 
 	fmt.Printf("%s", help)
@@ -274,7 +283,7 @@ func printHelp_NetworkInfo() {
 	djp := fmt.Sprintf(
 		"%sDISJOINT PATHS: %s \n" +
 		"\t%sShow Disjoint Paths %s \n" +
-		"\t-djp",
+		"\t-djp \n",
 		color_info, RESET, color_info, RESET,
 	)
 
@@ -283,6 +292,77 @@ func printHelp_NetworkInfo() {
 	fmt.Printf("%s", graph)
 	fmt.Printf("%s", graph_desc)
 	fmt.Printf("%s", djp)
+
+}
+
+// Print master information
+func printHelp_MasterInfo() {
+	mst := fmt.Sprintf("%sMASTER: %s", color_info, RESET)
+
+	topacquire := fmt.Sprintf(
+		"\t%sMake nodes acquire topology%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_top_acquire,
+	)
+
+	topload := fmt.Sprintf(
+		"\t%sMake nodes load topology from .csv file%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_top_load,
+	)
+
+	connall := fmt.Sprintf(
+		"\t%sMake nodes connect with their loaded neighbourhood%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_connectall,
+	)
+
+	crcexp := fmt.Sprintf(
+		"\t%sMake nodes send CRC EXP message one each time%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_crc_exp,
+	)
+
+	graph := fmt.Sprintf(
+		"\t%sMake nodes print their reconstructed graph%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_graph,
+	)
+
+	djp := fmt.Sprintf(
+		"\t%sMake nodes print their computed Disjoint-Paths Solution%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_djp,
+	)
+
+	prots := fmt.Sprintf(
+		"\t%sMake nodes print their protocols information%s \n" +
+		"\t-master %s\n",
+		color_info, RESET, mst_printprot,
+	)
+
+	sendtop := fmt.Sprintf(
+		"\t%sGiven on a node's shell, sends its topology file to Master%s \n" +
+		"\t%s[NODE SHELL]>%s-master %s\n",
+		color_info, RESET, color_desc, RESET, mst_top,
+	)
+
+	logs := fmt.Sprintf(
+		"\t%sGiven on a node's shell, sends its logfile to Master%s \n" +
+		"\t%s[NODE SHELL]>%s-master %s\n",
+		color_info, RESET, color_desc, RESET, mst_log,
+	)
+
+	fmt.Println(mst)
+	fmt.Println(topacquire)
+	fmt.Println(topload)
+	fmt.Println(connall)
+	fmt.Println(crcexp)
+	fmt.Println(graph)
+	fmt.Println(djp)
+	fmt.Println(prots)
+	fmt.Println(sendtop)
+	fmt.Println(logs)
 
 }
 
@@ -327,10 +407,10 @@ func printMessage(message string) {
 	} else if msg.Type == TYPE_DIRECT_MSG {
 		msgtype = TYPE_DIRECT_MSG
 		color = YELLOW
-	} else if msg.Type == TYPE_EXPLORER2 {
-		msgtype = TYPE_EXPLORER2
+	} else if msg.Type == TYPE_CRC_EXP {
+		msgtype = TYPE_CRC_EXP
 		color = GREY
-	} else if msg.Type == TYPE_CRC_EXP || msg.Type == TYPE_CRC_ROU || msg.Type == TYPE_CRC_CNT {
+	} else if msg.Type == TYPE_CRC_ROU || msg.Type == TYPE_CRC_CNT {
 		msgtype = TYPE_CRC
 		color = GREEN
 	}
