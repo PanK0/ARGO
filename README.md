@@ -193,8 +193,6 @@ Messages are identified by their type. Types are:
 - DIRECTMSG = Direct message
 - BROADCAST = Broadcast message
 - DETECTOR  = Detector message
-- EXPLORER  = Explorer message
-- EXPLORER2 = Explorer2 message
 - COMBINEDRC= CombinedRC message, divided in EXPLORER2, ROUTE, CONTENT
 
 Once received, messages are placed in a dedicated message container, that is an internal structure of a node. They can also be **DELIVERED** and so moved in another message container for delivered messages. 
@@ -225,16 +223,16 @@ Once a node X receives a broadcast message, it forwards it to any node that is n
 ![Broadcast example](https://github.com/PanK0/ARGO/blob/main/pictures/naive_broadcast_example.png?raw=true)
 
 
-### Run DETECTOR and EXPLORER protocols
-These two protocols are described in *Discovering Network Topology in the Presence of Byzantine Faults - 2009 - Nesterenko, Tixeuil*. 
+### Run DETECTOR protocols
+This protocol is described in *Discovering Network Topology in the Presence of Byzantine Faults - 2009 - Nesterenko, Tixeuil*. 
 
-Their purpose is to reconstruct the network topology under certain conditions (described in the paper).
+Its purpose is to reconstruct the network topology under certain conditions (described in the paper).
 
-However, **EXPLORER** has been proven to be wrong (see more [here](http://antares.cs.kent.edu/~mikhail/Research/topology.errata.html)), and so it has to be replaced with **EXPLORER2**, described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
+However, **EXPLORER** protocol, the other one described in the paper, has been proven to be wrong (see more [here](http://antares.cs.kent.edu/~mikhail/Research/topology.errata.html)), and so it has to be replaced with **EXPLORER2**, described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
 
 These protocols imply the sending of some messages in the network. These messages **DO NOT USE** the described above broadcast communication primitive, but they implement their own broadcast.
 
-Detector and Explorer can be invoked by running the ```-detector``` and/or ```-explorer``` commands.
+Detector can be invoked by running the ```-detector``` command.
 
 
 ## MASTER
@@ -380,7 +378,6 @@ dockerbash> exit
 Since this is still a test:
 
 - For each message is created a new stream. In a long run, this causes a saturation. To cope with this, a function openStream() is called, that closes currently opened streams.
-- To deliver a broadcast it is used a disjoint paths method. To deliver explorer2 messages, intersection is used.
 
 ## WARNING - ADDRESSES AND CONNECTIONS
 - Nodes multiaddresses can be viewed by uncommenting function `pintNodeInfo()` in *output_print_functions.go*.

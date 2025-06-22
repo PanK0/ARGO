@@ -116,24 +116,6 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 		}
 	})
 
-	h.SetStreamHandler(PROTOCOL_EXP, func (s network.Stream) {
-		err := handleExplorer(s, ctx, h, topology, messageContainer)
-		if err != nil {
-			s.Reset()
-		} else {
-			s.Close()
-		}
-	})
-
-	h.SetStreamHandler(PROTOCOL_EXP2, func (s network.Stream) {
-		err := handleExplorer2(s, ctx, h, topology, messageContainer, deliveredMessages)
-		if err != nil {
-			s.Reset()
-		} else {
-			s.Close()
-		}
-	})
-
 	// Set stream handler for master-slave messages
 	h.SetStreamHandler(PROTOCOL_MST, func (s network.Stream)  {
 		err := handleMaster(s, ctx, h, messageContainer, topology, disjointPaths)
@@ -190,24 +172,6 @@ func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *M
 	// Set stream handler for Detector messages
 	h.SetStreamHandler(PROTOCOL_DET, func (s network.Stream)  {
 		err := handleDetector(s, ctx, h, topology, messageContainer)
-		if err != nil {
-			s.Reset()
-		} else {
-			s.Close()
-		}
-	})
-
-	h.SetStreamHandler(PROTOCOL_EXP, func(s network.Stream) {
-		err := handleExplorer(s, ctx, h, topology, messageContainer)
-		if err != nil {
-			s.Reset()
-		} else {
-			s.Close()
-		}
-	})
-
-	h.SetStreamHandler(PROTOCOL_EXP2, func (s network.Stream) {
-		err := handleExplorer2(s, ctx, h, topology, messageContainer, deliveredMessages)
 		if err != nil {
 			s.Reset()
 		} else {

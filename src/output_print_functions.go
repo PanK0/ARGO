@@ -160,6 +160,7 @@ func printHelp_ProtocolInfo(h host.Host) {
 		color_info, RESET, color_info, RESET,
 	)
 
+	/*
 	explorer := fmt.Sprintf(
 		"%sEXPLORER:%s \n" +
 		"\t%sRun explorer protocol%s \n" +
@@ -178,6 +179,7 @@ func printHelp_ProtocolInfo(h host.Host) {
 		"\t-exp2 \n",
 		color_info, RESET, color_info, RESET,
 	)
+	*/
 
 	combinedRC := fmt.Sprintf(
 		"%sCOMBINED RC:%s \n" +
@@ -195,9 +197,9 @@ func printHelp_ProtocolInfo(h host.Host) {
 	fmt.Printf("%s", send)
 	fmt.Printf("%s", bcast)
 	fmt.Printf("%s", detector)
-	fmt.Printf("%s", explorer)
-	fmt.Printf("%s", explorer_desc)
-	fmt.Printf("%s", explorer2)
+	//fmt.Printf("%s", explorer)
+	//fmt.Printf("%s", explorer_desc)
+	//fmt.Printf("%s", explorer2)
 	fmt.Printf("%s", combinedRC)
 }
 

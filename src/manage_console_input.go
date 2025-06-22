@@ -246,56 +246,6 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 			sendDetector(ctx, h, detector_message)
 		}
 
-		// Send explorer message
-		command, _ = findElement(inputData_words, cmd_explorer) 
-		if command == cmd_explorer {
-			// Generate an ID for the message
-			timestamp := time.Now().Unix()
-			hasher := sha1.New()
-			hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
-			msgid := fmt.Sprintf("%x", hasher.Sum(nil))
-			neighbourhood := topology.ctop.GetNeighbourhood(getNodeAddress(h, ADDR_DEFAULT))
-			var visitedSet []string
-			var explorer_message Message = 
-			Message{
-				ID: msgid, 
-				Type: TYPE_EXPLORER, 
-				Sender: "", 
-				Source: getNodeAddress(h, ADDR_DEFAULT), 
-				Target: "",
-				Content: "",
-				Neighbourhood: neighbourhood,
-				Path: visitedSet,
-			}
-
-			sendExplorer(ctx, h, explorer_message)
-		}
-
-		// Send explorer2 message
-		command, _ = findElement(inputData_words, cmd_explorer2)
-		if command == cmd_explorer2 {
-			// Generate an ID for the message
-			timestamp := time.Now().Unix()
-			hasher := sha1.New()
-			hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
-			msgid := fmt.Sprintf("%x", hasher.Sum(nil))
-			neighbourhood := topology.ctop.GetNeighbourhood(getNodeAddress(h, ADDR_DEFAULT))
-			var visitedSet []string
-			var explorer2_message Message = 
-			Message{
-				ID: msgid, 
-				Type: TYPE_EXPLORER2, 
-				Sender: "", 
-				Source: getNodeAddress(h, ADDR_DEFAULT), 
-				Target: "",
-				Content: "",
-				Neighbourhood: neighbourhood,
-				Path: visitedSet,
-			}
-
-			sendExplorer2(ctx, h, explorer2_message, PROTOCOL_EXP2)
-		}
-
 		// CombinedRC messages
 		command, idx = findElement(inputData_words, cmd_crc)
 		if command == cmd_crc {

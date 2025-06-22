@@ -1,19 +1,16 @@
 package main
 
 import (
-	"bufio"
 	"context"
 	"encoding/json"
 	"fmt"
 	"time"
 
 	"github.com/libp2p/go-libp2p/core/host"
-	"github.com/libp2p/go-libp2p/core/network"
-	"github.com/libp2p/go-libp2p/core/protocol"
 )
 
 // function to manage an EXP2 message
-func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topology,
+func receive_EXP2(ctx context.Context, thisNode host.Host, m *Message, top *Topology,
 		messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
 	
 	m.Content = time.Now().Format("05.00000")
@@ -87,39 +84,7 @@ func receive_EXP(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 	return nil
 }
 
-// Handle stream for EXPLORER2 protocol
-// described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
-//lint:ignore U1000 Unused function for future use
-func handleExplorer2(s network.Stream, ctx context.Context, thisNode host.Host, top *Topology, 
-					messageContainer *MessageContainer, deliveredMessages *MessageContainer) error {
-
-	defer s.Close()
-	// Read the buffer and extract the message
-	buf := bufio.NewReader(s)
-	message, err := buf.ReadString('\n')
-	if err != nil {
-		printError(err)
-	}
-
-	// Transform the message
-	var m Message
-	err = json.Unmarshal([]byte(message), &m)
-	if err != nil {
-		printError(err)
-	}
-
-	err = receive_EXP(ctx, thisNode, &m, top, messageContainer, deliveredMessages)
-	if err != nil {
-		printError(err)
-	}
-
-	return nil
-}
-
-// Send an EXPLORER2 message
-// described @ `Tractable Reliable Communication in Compromised Networks, Giovanni Farina - cpt. 9.3, 9.4`
-//lint:ignore U1000 Unused function for future use
-func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message, PROTOCOL protocol.ID) {
+func sendEXP2(ctx context.Context, thisNode host.Host, exp_msg Message) {
 	
 	// Add the sender
 	exp_msg.Sender = getNodeAddress(thisNode, ADDR_DEFAULT)
@@ -141,7 +106,7 @@ func sendExplorer2(ctx context.Context, thisNode host.Host, exp_msg Message, PRO
 		if (contains(exp_msg.Path, p.String())) {
 			printShell()
 		} else {
-			stream, err := openStream(ctx, thisNode, p, PROTOCOL)
+			stream, err := openStream(ctx, thisNode, p, PROTOCOL_CRC)
 			if err != nil {
 				printError(err)
 			}
