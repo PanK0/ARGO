@@ -17,6 +17,8 @@ func printShell() {
 func printError(err error) {
 	header := fmt.Sprintf("\n%s!!!!----- ERROR -----!!!!%s\n", RED, RESET)	
 	fmt.Println(header)
+	event := fmt.Sprintf("ERROR \n\t %s", err)
+	logEvent(addressToPrint(thisnode_address, NODE_PRINTLAST), false, event)
 	//panic(err)
 }
 

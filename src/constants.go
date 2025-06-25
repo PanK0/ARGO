@@ -1,6 +1,7 @@
 package main
 
 var master_address string = ""
+var thisnode_address string = ""
 var color_info = GREEN
 var color_desc = CYAN
 var byzantine_status = false
@@ -102,7 +103,7 @@ const (
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/topology_wheel_2.csv"	// Path to the topology file
+	topology_path 	= "../config/topology2.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"

@@ -1,6 +1,9 @@
 package main
 
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 /*
 	A message container is a dictionnary that stores messages
@@ -151,7 +154,8 @@ func (mc *MessageContainer) countNodeDisjointPaths_intersection(msg_id string) [
 
 // GetDisjointPathsMinCut finds the maximum set of node-disjoint paths
 // among all Message.Path of messages[msg_id], using Edmonds–Karp (BFS).
-func (mc *MessageContainer) GetDisjointPathsMinCut(msg_id string) [][]string {
+func (mc *MessageContainer) GetDisjointPathsEdmondKarp(msg_id string) [][]string {
+    timestamp_start := time.Now()
     messages := mc.Get(msg_id)
     if len(messages) == 0 {
         return nil
@@ -232,13 +236,19 @@ func (mc *MessageContainer) GetDisjointPathsMinCut(msg_id string) [][]string {
         result = append(result, path)
     }
 
+    timestamp_end := time.Now()
+	event := fmt.Sprintf("DJP COUNT: %d - performed in time %f seconds", len(result), timestamp_end.Sub(timestamp_start).Seconds())
+	logEvent(addressToPrint(thisnode_address, NODE_PRINTLAST), PRINTOPTION, event)
+
     return result
 }
 
 
 // GetDisjointPathsBrute tries every subset of message paths and
-// returns the largest node-disjoint collection (NP-complete approach).
+// returns the largest node-disjoint collection (NP-complete approach)
+// runs in O(2^m * m * l) with m paths of length up to l
 func (mc *MessageContainer) GetDisjointPathsBrute(msg_id string) [][]string {
+    timestamp_start := time.Now()
     messages := mc.Get(msg_id)
     n := len(messages)
     if n == 0 {
@@ -280,6 +290,10 @@ func (mc *MessageContainer) GetDisjointPathsBrute(msg_id string) [][]string {
             best = candidate
         }
     }
+
+    timestamp_end := time.Now()
+	event := fmt.Sprintf("DJP COUNT - performed in time %f seconds", timestamp_end.Sub(timestamp_start).Seconds())
+	logEvent(addressToPrint(thisnode_address, NODE_PRINTLAST), PRINTOPTION, event)
 
     return best
 }

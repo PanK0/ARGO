@@ -39,6 +39,7 @@ func main() {
 	sentMessages := NewMessageContainer()
 	disjointPaths := NewDisjointPaths()
 	h := createNode()
+	thisnode_address = getNodeAddress(h, ADDR_DEFAULT)
 
 	if *mod == start_automatic && *nod != "" && *dest != "" {
 		master_address = *dest
