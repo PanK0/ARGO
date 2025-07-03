@@ -18,7 +18,7 @@ import (
 	"github.com/multiformats/go-multiaddr"
 )
 
-func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, messageContainer *MessageContainer, topology *Topology, disjointPaths *DisjointPaths) error {
+func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, messageContainer *MessageContainer, delivered_messages *MessageContainer, topology *Topology, disjointPaths *DisjointPaths) error {
 	// Read the buffer and extract the message
 	buf := bufio.NewReader(s)
 	message, err := buf.ReadString('\n')
@@ -118,6 +118,8 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		// Managed by Master when a node sends a letter to Force in topology.csv
 		ReplaceInCSV(topology_path, m.Source, m.Content)
 		fmt.Printf("Topology updated: node %s -> %s\n", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+	} else if m.Content == mst_reset {
+		totalReset(thisNode, messageContainer, delivered_messages, disjointPaths, topology)
 	} else {
 		// Managed by Master when a node sends a log
 		saveReceivedLog(m)

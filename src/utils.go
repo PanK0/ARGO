@@ -8,6 +8,10 @@ import (
 	"path/filepath"
 	"sync"
 	"time"
+
+	"github.com/libp2p/go-libp2p/core/host"
+	"github.com/libp2p/go-libp2p/core/peer"
+	"github.com/multiformats/go-multiaddr"
 )
 
 // mutex for log
@@ -148,4 +152,40 @@ func saveReceivedTop(m Message) error {
     }
 
     return nil
+}
+
+// Reset all the data structures
+func totalReset(h host.Host, messageContainer *MessageContainer, deliveredMessages *MessageContainer, disjointPaths *DisjointPaths, topology *Topology) {
+
+	// Reset data structs
+	messageContainer.Reset()
+	deliveredMessages.Reset()
+	disjointPaths.Reset()
+	topology.Reset()
+
+
+	// Parse master_address as multiaddr and get peer info
+    maddr, err := multiaddr.NewMultiaddr(master_address)
+    if err != nil {
+        printError(err)
+    }
+    master_peerInfo, err := peer.AddrInfoFromP2pAddr(maddr)
+    if err != nil {
+        printError(err)
+    }
+
+	// Disconnect from peers
+	peers := h.Network().Peers()
+    for _, peerID := range peers {
+		if peerID != master_peerInfo.ID {
+			err := h.Network().ClosePeer(peerID)
+			if err != nil {
+				fmt.Printf("Error disconnecting from peer "+peerID.String()+"\n")
+			} else {
+				fmt.Printf("Disconnected from peer "+peerID.String()+"\n")
+			}
+		}        
+    }
+
+	fmt.Println("Node reset: DONE")
 }

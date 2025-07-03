@@ -348,6 +348,12 @@ func (top Topology) GetUTop() UTop {
 	return top.utop
 }
 
+// Reset the topology by deleting both cTop and uTop
+func (top *Topology) Reset() {
+	top.ctop = *NewCTop()
+	top.utop = *NewUTop()
+}
+
 
 // Computes an intersection betweens two []string objects
 func Intersect(a []string, b []string) []string {

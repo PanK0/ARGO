@@ -343,6 +343,12 @@ func printHelp_MasterInfo() {
 		color_info, RESET, mst_printprot,
 	)
 
+	reset := fmt.Sprintf(
+		"\t%sReset all data structures of the nodes%s \n" +
+		"\t-master %s\n", 
+		color_info, RESET, mst_reset,
+	)
+
 	sendtop := fmt.Sprintf(
 		"\t%sGiven on a node's shell, sends its topology file to Master%s \n" +
 		"\t%s[NODE SHELL]>%s-master %s\n",
@@ -355,6 +361,7 @@ func printHelp_MasterInfo() {
 		color_info, RESET, color_desc, RESET, mst_log,
 	)
 
+
 	fmt.Println(mst)
 	fmt.Println(topacquire)
 	fmt.Println(topload)
@@ -363,6 +370,7 @@ func printHelp_MasterInfo() {
 	fmt.Println(graph)
 	fmt.Println(djp)
 	fmt.Println(prots)
+	fmt.Println(reset)
 	fmt.Println(sendtop)
 	fmt.Println(logs)
 

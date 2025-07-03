@@ -62,6 +62,13 @@ func (dp *DisjointPaths) GetAll() map[string] [][]string {
 	return dp.paths
 }
 
+// Reset the DisjointPaths by deleting all paths
+func (dp *DisjointPaths) Reset() {
+	dp.mu.Lock()
+	defer dp.mu.Unlock()
+	dp.paths = make(map[string] [][]string, 0)
+}
+
 // Get the number of paths for a given node
 func (dp *DisjointPaths) GetNumberOfPaths(node_id string) int {
 	return len(dp.paths[node_id])

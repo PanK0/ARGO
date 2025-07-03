@@ -118,7 +118,7 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 
 	// Set stream handler for master-slave messages
 	h.SetStreamHandler(PROTOCOL_MST, func (s network.Stream)  {
-		err := handleMaster(s, ctx, h, messageContainer, topology, disjointPaths)
+		err := handleMaster(s, ctx, h, messageContainer, deliveredMessages, topology, disjointPaths)
 		if err != nil {
 			s.Reset()
 		} else {
@@ -181,7 +181,7 @@ func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *M
 
 	// Set stream handler for master-slave messages
 	h.SetStreamHandler(PROTOCOL_MST, func (s network.Stream)  {
-		err := handleMaster(s, ctx, h, messageContainer, topology, disjointPaths)
+		err := handleMaster(s, ctx, h, messageContainer, deliveredMessages, topology, disjointPaths)
 		if err != nil {
 			s.Reset()
 		} else {
@@ -245,7 +245,6 @@ func connectNodes(ctx context.Context, sourceNode host.Host, targetNode_address 
 
 
 // Disconnects two nodes
-//lint:ignore U1000 Unused function for future use
 func disconnectNodes(ctx context.Context, sourceNode host.Host, targetNode_address string) {
 	// Turn the destination into a multiaddr.
 	targetNode_maddr, err := multiaddr.NewMultiaddr(targetNode_address)

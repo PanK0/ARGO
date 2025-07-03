@@ -83,6 +83,11 @@ func (mc MessageContainer) lookInPaths(msg_id string, node_id string) bool {
 	return false
 }
 
+// Reset the messageContainer by deleting all messages
+func (mc *MessageContainer) Reset() {
+    mc.messages = make(map[string][]Message, 0)
+}
+
 
 // Count node disjoint paths in relation to a single message
 // Given a string msg_id, find it into the message container.
