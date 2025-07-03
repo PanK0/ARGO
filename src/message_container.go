@@ -171,6 +171,11 @@ func (mc *MessageContainer) GetDisjointPathsEdmondKarp(msg_id string) [][]string
     sink   := messages[0].Target
 
     // build residual graph: bool capacity = true/false
+    // map[string]map[string]bool = nested map
+    // The external key is a string to which is associated a map string:bool. Used for oriented graphs
+    // ex: 
+    // -> "A": {"B":true, "C":true}  means that node A is connected to B and C
+    // -> "B": {"C":true} means that node B is connected to C
     residual := make(map[string]map[string]bool, len(g.nodes))
     for u := range g.nodes {
         residual[u] = make(map[string]bool, len(g.adjList[u]))
@@ -184,7 +189,7 @@ func (mc *MessageContainer) GetDisjointPathsEdmondKarp(msg_id string) [][]string
 
     var result [][]string
     for {
-        // --- BFS to find an augmenting path that avoids usedNodes ---
+        // Data structs reset and preparation for BFS
         for k := range parent {
             delete(parent, k)
         }
@@ -193,6 +198,7 @@ func (mc *MessageContainer) GetDisjointPathsEdmondKarp(msg_id string) [][]string
         visited[source] = true
 
         found := false
+        // --- BFS to find an augmenting path that avoids usedNodes ---
         for len(queue) > 0 && !found {
             u := queue[0]; queue = queue[1:]
             for _, v := range g.adjList[u] {
@@ -258,17 +264,22 @@ func (mc *MessageContainer) GetDisjointPathsBrute(msg_id string) [][]string {
     var best [][]string
 
     // iterate all non-empty subsets via bitmask
+    // Creates a bitmask of size of all messages corresponding to a certain messageID = each bit corresponds to a path
+    // Each value of mask from 1 to 1<<n represent a different subset of paths
+    // Then (internal cycle), in each subset, a check for the disjoint paths in that subset is done and the longest candidate is saved
+    // This costs O(2^n) iterations -> 1<<n = 2^n
     for mask := 1; mask < (1 << n); mask++ {
         used := make(map[string]bool)
         var candidate [][]string
         ok := true
 
         for i := 0; i < n; i++ {
+            // Check the i-th path
             if mask&(1<<i) == 0 {
                 continue
             }
             path := messages[i].Path
-            // check node-disjointness
+            // check node-disjointness in the used map
             for _, node := range path {
                 if used[node] {
                     ok = false
