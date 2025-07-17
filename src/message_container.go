@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"sync"
 	"time"
 )
 
@@ -12,6 +13,7 @@ import (
 */
 type MessageContainer struct {
 	messages map[string] []Message
+    mu       sync.Mutex
 }
 
 // Return a new MessageContainer
@@ -22,19 +24,23 @@ func NewMessageContainer() *MessageContainer {
 }
 
 // Add an element to the MessageContainer
-func (mc MessageContainer) Add(msg Message) {
+func (mc *MessageContainer) Add(msg Message) {
+    mc.mu.Lock()
+    defer mc.mu.Unlock()
 	mc.messages[msg.ID] = append(mc.messages[msg.ID], msg)
 }
 
 
 // Get all the objects Message associated with an ID
-func (mc MessageContainer) Get(msg_id string) []Message {
+func (mc *MessageContainer) Get(msg_id string) []Message {
+    mc.mu.Lock()
+    defer mc.mu.Unlock()
 	return mc.messages[msg_id]
 }
 
 // Return all the messages
 //lint:ignore U1000 Unused function for future use
-func (mc MessageContainer) toString() string {
+func (mc *MessageContainer) toString() string {
 	msg := ""
 	for k, v := range mc.messages {
 		msg += fmt.Sprintf("%s - %s\n", k, v)
@@ -43,7 +49,9 @@ func (mc MessageContainer) toString() string {
 }
 
 // Delete an element from a message container
-func (mc MessageContainer) deleteElement(msg_id string) {
+func (mc *MessageContainer) deleteElement(msg_id string) {
+    mc.mu.Lock()
+    defer mc.mu.Unlock()
 	delete(mc.messages, msg_id)
 }
 
@@ -68,7 +76,7 @@ func (mc *MessageContainer) RemoveMessage(msg Message) {
 
 // Look for a node being in at least one path of at least one instance of msg_id
 // Used for BFT in Explorer2
-func (mc MessageContainer) lookInPaths(msg_id string, node_id string) bool {
+func (mc *MessageContainer) lookInPaths(msg_id string, node_id string) bool {
 	messages := mc.Get(msg_id)
 	for _, m := range messages {
 		if getNodeID(m.Sender) == node_id || getNodeID(m.Source) == node_id {
@@ -94,7 +102,7 @@ func (mc *MessageContainer) Reset() {
 // For that message corresponding to a specific ID, build a graph 
 // made of all the nodes that all the copies of that messages traversed in their paths.
 // This function builds a graph taking into account the paths the messages took, NOT THE TOPOLOGY.
-func (mc MessageContainer) countNodeDisjointPaths(msg_id string) int {
+func (mc *MessageContainer) countNodeDisjointPaths(msg_id string) int {
 	// Get all the messages corresponding to the ID msg_id
 	messages := mc.Get(msg_id)
 	
@@ -248,7 +256,7 @@ func (mc *MessageContainer) GetDisjointPathsEdmondKarp(msg_id string) [][]string
     }
 
     timestamp_end := time.Now()
-	event := fmt.Sprintf("DJP COUNT: %d - performed in time %f seconds", len(result), timestamp_end.Sub(timestamp_start).Seconds())
+	event := fmt.Sprintf("DJP_COUNT: %d - performed in time %f seconds", len(result), timestamp_end.Sub(timestamp_start).Seconds())
 	logEvent(addressToPrint(thisnode_address, NODE_PRINTLAST), PRINTOPTION, event)
 
     return result
@@ -308,7 +316,7 @@ func (mc *MessageContainer) GetDisjointPathsBrute(msg_id string) [][]string {
     }
 
     timestamp_end := time.Now()
-	event := fmt.Sprintf("DJP COUNT - performed in time %f seconds", timestamp_end.Sub(timestamp_start).Seconds())
+	event := fmt.Sprintf("DJP_COUNT - performed in time %f seconds", timestamp_end.Sub(timestamp_start).Seconds())
 	logEvent(addressToPrint(thisnode_address, NODE_PRINTLAST), PRINTOPTION, event)
 
     return best

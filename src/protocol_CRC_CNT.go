@@ -33,22 +33,26 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		peer_maddr, err := multiaddr.NewMultiaddr(m.Path[idx+1])
 		if err != nil {
 			printError(err)
+			return err
 		}
 
 		// Extract the peer ID from the multiaddr
 		peer_info, err := peer.AddrInfoFromP2pAddr(peer_maddr)
 		if err != nil {
 			printError(err)
+			return err
 		}
 
 		stream, err := openStream(ctx, thisNode, peer_info.ID, PROTOCOL_CRC)
 		if err != nil {
 			printError(err)
+			return err
 		}
 
 		dataBytes, err := json.Marshal(m)
 		if err != nil {
 			printError(err)
+			return err
 		}
 		msg := string(dataBytes)
 		msg += "\n" 
@@ -57,6 +61,7 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		_, err = stream.Write([]byte(msg))
 		if err != nil {
 			printError(err)
+			return err
 		}
 
 		event := fmt.Sprintf("receive_CNT - Content from %s forwarded to %s",addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))

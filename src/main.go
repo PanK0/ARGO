@@ -33,6 +33,7 @@ func main() {
 	}
 
 	// Create the proper data structs
+	readMaxByzantines(BYZANTINE_CONFIG, &MAX_BYZANTINES)
 	topology := NewTopology()
 	receivedMessages := NewMessageContainer()
 	deliveredMessages := NewMessageContainer()

@@ -83,6 +83,7 @@ func runNode(ctx context.Context, h host.Host, messageContainer *MessageContaine
 			deliveredMessages *MessageContainer, sentMessages *MessageContainer, 
 			disjointPaths *DisjointPaths, topology *Topology) {
 	fmt.Println("Running node: ", getNodeAddress(h, ADDR_DEFAULT))
+	fmt.Println("Tolerating max byzantines: ", MAX_BYZANTINES)
 	topology.nodeID = getNodeAddress(h, ADDR_DEFAULT)
 
 	// Set stream handler for direct messages
@@ -146,6 +147,7 @@ func runNode_knownTopology(ctx context.Context, h host.Host, messageContainer *M
 						deliveredMessages *MessageContainer, sentMessages *MessageContainer,
 						disjointPaths *DisjointPaths, topology *Topology) {
 	fmt.Println("Running node: ", getNodeAddress(h, ADDR_DEFAULT))
+	fmt.Println("Tolerating max byzantines: ", MAX_BYZANTINES)
 	topology.nodeID = getNodeAddress(h, ADDR_DEFAULT)
 
 	// Set stream handler for direct messages

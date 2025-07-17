@@ -165,7 +165,7 @@ if __name__ == "__main__":
     # Check if the script was run with "clear"
     if len(sys.argv) > 1 and sys.argv[1] == "clear":
         clear_logs()
-        replace_topology_files()
+        #replace_topology_files()
         sys.exit()
 
     # Find all log files in the directory

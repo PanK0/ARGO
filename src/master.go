@@ -78,6 +78,8 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 			Neighbourhood: neighbourhood,
 			Path: visitedSet,
 		}
+		// Apply byzantine: uncomment the following line to make byzantines create troubles at the beginning
+		if applyByzantine(thisNode, &crc_message) {return nil} // drops the message if byzantine is of type 2
 		sendCombinedRC(ctx, thisNode, crc_message, topology, disjointPaths)
 	} else if m.Content == mst_graph {
 		// Managed by node

@@ -29,6 +29,40 @@ type Byzantine struct {
 	Alterations string			// Description of message alterations
 }
 
+// Read the number of byzantines
+func readMaxByzantines(config_filename string, MAX_BYZANTINES *int) error {
+	// Open the config file
+	file, err := os.Open(config_filename)
+	if err != nil {
+		return fmt.Errorf("error opening config file: %v", err)
+	}
+	defer file.Close()
+
+	// Read file line by line
+	scanner := bufio.NewScanner(file)
+	for scanner.Scan() {
+		line := scanner.Text()
+
+		// Ignore empty lines and comments
+		if strings.TrimSpace(line) == "" || strings.HasPrefix(line, "#") {
+			continue
+		}
+
+		// Split key-value pairs
+		parts := strings.SplitN(line, "=", 2)
+		if len(parts) != 2 {
+			return fmt.Errorf("invalid config line: %s", line)
+		}
+
+		key := strings.TrimSpace(parts[0])
+		value := strings.TrimSpace(parts[1])
+
+		if key == "MAX_BYZANTINES" {
+			*MAX_BYZANTINES, err = strconv.Atoi(value)
+		}
+	}
+	return nil
+}
 
 // LoadByzantineConfig reads the byzantine.config file and loads data into a Byzantine struct
 func LoadByzantineConfig(config_filename string) (Byzantine, error) {

@@ -1,0 +1,11 @@
+NODE,NEIGHBOURS,,
+A,B,C,D
+B,A,E,F
+C,A,E,G
+D,A,F,G
+E,B,C,H
+F,B,D,W
+G,D,C,I
+H,E,I,W
+I,G,H,W
+W,H,F,I

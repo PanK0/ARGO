@@ -5,10 +5,10 @@ var thisnode_address string = ""
 var color_info = GREEN
 var color_desc = CYAN
 var byzantine_status = false
+var MAX_BYZANTINES		= 0
 
 const (
 	// Byzantine related constants
-	MAX_BYZANTINES		= 1
 	BYZANTINE_CONFIG	= "../config/byzantine.config"
 	BYZ_NEIGHBOURHOOD	= "neighbourhood"
 	BYZ_PATH			= "path"
@@ -104,7 +104,7 @@ const (
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/topology.csv"	// Path to the topology file
+	topology_path 	= "../config/6nodes_3connected.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"
