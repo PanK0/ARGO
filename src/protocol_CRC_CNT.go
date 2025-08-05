@@ -15,7 +15,7 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 	messageContainer.Add(*m)
 	
 	if m.Target == getNodeAddress(thisNode, ADDR_DEFAULT) {
-		event := fmt.Sprintf("receive_CNT - Content from %s received from %s!", addressToPrint(m.Source, NODE_PRINTLAST), addressToPrint(m.Sender, NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_CNT %s - Content from %s received from %s!", m.ID[len(m.ID)-5:], addressToPrint(m.Source, NODE_PRINTLAST), addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		fmt.Print(msgToString(*m))
 	} else {
@@ -25,7 +25,7 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		m.Sender = thisPeer
 		
 		if idx+1 >= len(m.Path) {
-			event := fmt.Sprintf("receive_CNT - Invalid path index: idx+1=%d, len(m.Path)=%d", idx+1, len(m.Path))
+			event := fmt.Sprintf("receive_CNT %s - Invalid path index: idx+1=%d, len(m.Path)=%d", m.ID[len(m.ID)-5:], idx+1, len(m.Path))
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 			return nil
 		}
@@ -64,7 +64,7 @@ func receive_CNT(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 			return err
 		}
 
-		event := fmt.Sprintf("receive_CNT - Content from %s forwarded to %s",addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_CNT %s - Content from %s forwarded to %s",m.ID[len(m.ID)-5:], addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}
@@ -82,7 +82,7 @@ func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topol
 	// Send routed messages to target node
 	for _, path := range disjointPaths.paths[m.Target] {
 		if len(path) <= 1 {
-			event := fmt.Sprintf("send_CRC_CNT - Invalid path length: %d (need at least 2)", len(path))
+			event := fmt.Sprintf("send_CRC_CNT %s - Invalid path length: %d (need at least 2)",m.ID[len(m.ID)-5:], len(path))
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 			continue
 		}
@@ -122,7 +122,7 @@ func send_CRC_CNT(ctx context.Context, thisNode host.Host, m Message, top *Topol
 			printError(err)
 		}
 
-		event := fmt.Sprintf("send_CNT - Content sent to %s for %s", addressToPrint(path[1], NODE_PRINTLAST), addressToPrint(m.Target, NODE_PRINTLAST))
+		event := fmt.Sprintf("send_CNT %s - Content sent to %s for %s",m.ID[len(m.ID)-5:], addressToPrint(path[1], NODE_PRINTLAST), addressToPrint(m.Target, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}

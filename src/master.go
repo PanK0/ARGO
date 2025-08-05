@@ -121,7 +121,14 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		ReplaceInCSV(topology_path, m.Source, m.Content)
 		fmt.Printf("Topology updated: node %s -> %s\n", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
 	} else if m.Content == mst_reset {
+		readMaxByzantines(BYZANTINE_CONFIG, &MAX_BYZANTINES)
 		totalReset(thisNode, messageContainer, delivered_messages, disjointPaths, topology)
+		// Load Topology
+		topology_graph := LoadGraphFromCSV(topology_path)
+		topology.ctop.loadNeigh(topology_graph, getNodeAddress(thisNode, ADDR_DEFAULT))
+		fmt.Println(topology.ctop.toString())
+		// Connect all nodes
+		connectAllNodes(ctx, thisNode, topology)
 	} else {
 		// Managed by Master when a node sends a log
 		saveReceivedLog(m)

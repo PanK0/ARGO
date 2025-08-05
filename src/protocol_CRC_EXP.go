@@ -18,7 +18,7 @@ func receive_EXP2(ctx context.Context, thisNode host.Host, m *Message, top *Topo
 	inst := addressToPrint(m.Sender, NODE_PRINTLAST)
 	m.InstanceID += "_"+inst
 
-	event := fmt.Sprintf("receive_EXP2 %s - Handling message from %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+	event := fmt.Sprintf("receive_EXP2 %s - Handling message from %s", m.ID[len(m.ID)-5:], addressToPrint(m.Sender, NODE_PRINTLAST))
 	logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	// TO DO: When the local neighbourhood changes, 
@@ -79,7 +79,7 @@ func receive_EXP2(ctx context.Context, thisNode host.Host, m *Message, top *Topo
 	}
 
 	timestamp_end := time.Now()
-	event = fmt.Sprintf("BFT_execution %s - performed in time %f seconds", m.Content, timestamp_end.Sub(timestamp_start).Seconds())
+	event = fmt.Sprintf("BFT_execution %s - performed in time %f seconds", m.ID[len(m.ID)-5:], timestamp_end.Sub(timestamp_start).Seconds())
 	logEvent(thisNode.ID().String(), false, event)
 	return nil
 }
@@ -120,7 +120,7 @@ func sendEXP2(ctx context.Context, thisNode host.Host, exp_msg Message) {
 			}
 			stream.Close() // <-- chiudi sempre lo stream dopo la scrittura
 
-			event := fmt.Sprintf("send_EXP2 %s - Forwarded message from %s to node %s", exp_msg.Content, addressToPrint(exp_msg.Sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
+			event := fmt.Sprintf("send_EXP2 %s - Forwarded message from %s to node %s", exp_msg.ID[len(exp_msg.ID)-5:], addressToPrint(exp_msg.Sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 		}
 	}
@@ -135,19 +135,19 @@ func manageDelivery(messageContainer MessageContainer, deliveredMessages Message
 	if !top.ctop.checkInCTop(m.Source) {
 		// Add m.Source to cTop
 		top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
-		event := fmt.Sprintf("manageDelivery %s - Node %s added to cTop", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+		event := fmt.Sprintf("manageDelivery %s - Node %s added to cTop", m.ID[len(m.ID)-5:], addressToPrint(m.Source, NODE_PRINTLAST))
 		logEvent(top.nodeID, PRINTOPTION, event)
 	} else if top.ctop.checkInCTop(m.Source) &&
 			isSubSet(top.ctop.GetNeighbourhood(m.Source), m.Neighbourhood) == 0 {
 		
 		top.ctop.AddNeighbourhood(m.Source, m.Neighbourhood)
-		event := fmt.Sprintf("manageDelivery %s - Neighbourhood updated for node %s", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
+		event := fmt.Sprintf("manageDelivery %s - Neighbourhood updated for node %s", m.ID[len(m.ID)-5:], addressToPrint(m.Source, NODE_PRINTLAST))
 		logEvent(top.nodeID, PRINTOPTION, event)
 	
 	} else if top.ctop.checkInCTop(m.Source) &&
 			isSubSet(m.Neighbourhood, top.ctop.GetNeighbourhood(m.Source)) == 0 {
 		
-		event := fmt.Sprintf("manageDelivery %s - Non consistent information from node %s", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+		event := fmt.Sprintf("manageDelivery %s - Non consistent information from node %s", m.ID[len(m.ID)-5:], addressToPrint(m.Sender, NODE_PRINTLAST))
 		logEvent(top.nodeID, PRINTOPTION, event)
 		return false
 	}
@@ -179,7 +179,7 @@ func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
     del := BFT_deliver(messageContainer, deliveredMessages, m, top)
 		
     // Log the delivery event
-    event := fmt.Sprintf("deliver_EXP2 %s - Message sent by %s delivered? %t", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST), del)
+    event := fmt.Sprintf("deliver_EXP2 %s - Message sent by %s delivered? %t", m.ID[len(m.ID)-5:], addressToPrint(m.Sender, NODE_PRINTLAST), del)
     logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	if !del {return}
@@ -217,7 +217,7 @@ func BFT_deliver_and_relay(ctx context.Context, thisNode host.Host,
             }
             stream.Close()
 
-            event := fmt.Sprintf("delandrelay_EXP2 %s - Forward message from %s on node %s", m.Content, addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
+            event := fmt.Sprintf("delandrelay_EXP2 %s - Forward message from %s on node %s", m.ID[len(m.ID)-5:], addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(p.String(), NODE_PRINTLAST))
             logEvent(thisNode.ID().String(), PRINTOPTION, event)
         }
     }

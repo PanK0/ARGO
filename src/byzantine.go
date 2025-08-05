@@ -58,7 +58,12 @@ func readMaxByzantines(config_filename string, MAX_BYZANTINES *int) error {
 		value := strings.TrimSpace(parts[1])
 
 		if key == "MAX_BYZANTINES" {
-			*MAX_BYZANTINES, err = strconv.Atoi(value)
+			val, err := strconv.Atoi(value)
+			if err != nil {
+				return fmt.Errorf("invalid MAX_BYZANTINES value: %v", err)
+			}
+			*MAX_BYZANTINES = val
+			fmt.Println("MAX BYZANTINES TOLERATED: ", *MAX_BYZANTINES)
 		}
 	}
 	return nil

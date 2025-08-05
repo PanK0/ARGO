@@ -20,7 +20,7 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
             m.Path[i], m.Path[j] = m.Path[j], m.Path[i]
         }
 		disjointPaths.Add(m.Source, m.Path)
-		event := fmt.Sprintf("receive_ROU - Route from %s added to DJP for %s", addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_ROU %s - Route from %s added to DJP for %s",m.ID[len(m.ID)-5:], addressToPrint(m.Sender, NODE_PRINTLAST), addressToPrint(m.Source, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 	} else {
 		// Forward this message to the next node in the path
@@ -29,7 +29,7 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 		m.Sender = thisPeer
 
 		if idx+1 >= len(m.Path) {
-			event := fmt.Sprintf("receive_ROU - Invalid path index: idx+1=%d, len(m.Path)=%d", idx+1, len(m.Path))
+			event := fmt.Sprintf("receive_ROU %s - Invalid path index: idx+1=%d, len(m.Path)=%d", m.ID[len(m.ID)-5:], idx+1, len(m.Path))
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 			return nil
 		}
@@ -69,7 +69,7 @@ func receive_ROU(ctx context.Context, thisNode host.Host, m *Message, top *Topol
 			return err
 		}
 
-		event := fmt.Sprintf("receive_ROU - Route from %s forwarded to %s", addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
+		event := fmt.Sprintf("receive_ROU %s - Route from %s forwarded to %s", m.ID[len(m.ID)-5:], addressToPrint(old_sender, NODE_PRINTLAST), addressToPrint(m.Path[idx+1], NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}
@@ -97,7 +97,7 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 
 		m.Path = path
 		if len(path) <= 1 {
-			event := fmt.Sprintf("send_CRC_ROU - Invalid path length: %d (need at least 2)", len(path))
+			event := fmt.Sprintf("send_CRC_ROU %s - Invalid path length: %d (need at least 2)", m.ID[len(m.ID)-5:], len(path))
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 			continue
 		}
@@ -135,7 +135,7 @@ func send_CRC_ROU(ctx context.Context, thisNode host.Host, m Message, top *Topol
 			printError(err)
 		}
 
-		event := fmt.Sprintf("send_ROU - Route sent to %s for %s", addressToPrint(path[1], NODE_PRINTLAST), addressToPrint(m.Target, NODE_PRINTLAST))
+		event := fmt.Sprintf("send_ROU %s - Route sent to %s for %s", m.ID[len(m.ID)-5:], addressToPrint(path[1], NODE_PRINTLAST), addressToPrint(m.Target, NODE_PRINTLAST))
 		logEvent(thisNode.ID().String(), PRINTOPTION, event)
 
 	}

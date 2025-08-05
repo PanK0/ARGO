@@ -34,14 +34,14 @@ func handleBroadcast(s network.Stream, ctx context.Context, thisNode host.Host, 
 	if byzantine_status {
 		// If byzantine is of Type 1, then sleep for bz.Delay milliseconds
 		if bz.Type1 {
-			event := fmt.Sprintf("byzantine %s - delay of %s ms", m.Content, bz.Delay)
+			event := fmt.Sprintf("byzantine %s - delay of %s ms", m.ID[len(m.ID)-5:], bz.Delay)
 			logEvent(thisNode.ID().String(), PRINTOPTION, event)
 			time.Sleep(bz.Delay)
 		}
 		// If byzantine is of Type 2, then drop the message with bz.Droprate probability
 		if bz.Type2 {
 			if (rand.Float64() < bz.DropRate) {
-				event := fmt.Sprintf("byzantine %s - Message from %s dropped", m.Content, addressToPrint(m.Sender, NODE_PRINTLAST))
+				event := fmt.Sprintf("byzantine %s - Message from %s dropped", m.ID[len(m.ID)-5:], addressToPrint(m.Sender, NODE_PRINTLAST))
 				logEvent(thisNode.ID().String(), PRINTOPTION, event)
 				return nil
 			}
