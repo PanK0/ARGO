@@ -1,5 +1,0 @@
-NODE,NEIGHBOURS,,
-A,B,C,W
-B,A,C,W
-C,A,B,W
-W,B,C,A

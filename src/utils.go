@@ -154,7 +154,7 @@ func saveReceivedTop(m Message) error {
     return nil
 }
 
-// Reset all the data structures
+// Reset all the data structures and byzantines
 func totalReset(h host.Host, messageContainer *MessageContainer, deliveredMessages *MessageContainer, disjointPaths *DisjointPaths, topology *Topology) {
 
 	// Reset data structs
@@ -162,6 +162,14 @@ func totalReset(h host.Host, messageContainer *MessageContainer, deliveredMessag
 	deliveredMessages.Reset()
 	disjointPaths.Reset()
 	topology.Reset()
+
+	// Reset byzantine status
+	if byzantine_status {
+		event := fmt.Sprintf("byzantine - Node %s is no more a byzantine", addressToPrint(h.ID().String(), NODE_PRINTLAST))
+		logEvent(h.ID().String(), PRINTOPTION, event)
+		color_info = GREEN
+	}
+	byzantine_status = false
 
 
 	// Parse master_address as multiaddr and get peer info

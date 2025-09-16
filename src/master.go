@@ -7,6 +7,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"os"
 	"regexp"
 	"strings"
@@ -121,6 +122,7 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		ReplaceInCSV(topology_path, m.Source, m.Content)
 		fmt.Printf("Topology updated: node %s -> %s\n", m.Content, addressToPrint(m.Source, NODE_PRINTLAST))
 	} else if m.Content == mst_reset {
+		// Managed by node
 		readMaxByzantines(BYZANTINE_CONFIG, &MAX_BYZANTINES)
 		totalReset(thisNode, messageContainer, delivered_messages, disjointPaths, topology)
 		// Load Topology
@@ -129,6 +131,23 @@ func handleMaster(s network.Stream, ctx context.Context, thisNode host.Host, mes
 		fmt.Println(topology.ctop.toString())
 		// Connect all nodes
 		connectAllNodes(ctx, thisNode, topology)
+	} else if m.Content == cmd_byzantine {
+		// Managed by node
+		if !byzantine_status {		
+			var err error
+			bz, err = LoadByzantineConfig(BYZANTINE_CONFIG)
+			if err != nil {
+				printError(err)
+			}		
+			color_info = RED
+			event := fmt.Sprintf("byzantine - Node %s is now a byzantine", addressToPrint(thisNode.ID().String(), NODE_PRINTLAST))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+		} else {
+			event := fmt.Sprintf("byzantine - Node %s is no more a byzantine", addressToPrint(thisNode.ID().String(), NODE_PRINTLAST))
+			logEvent(thisNode.ID().String(), PRINTOPTION, event)
+			color_info = GREEN
+		}
+		byzantine_status = !byzantine_status
 	} else {
 		// Managed by Master when a node sends a log
 		saveReceivedLog(m)
@@ -151,7 +170,6 @@ func sendMaster(ctx context.Context, thisNode host.Host, m Message) {
 
 	// Cycle through the peers connected to the current node
 	for _, p := range thisNode.Network().Peers() {
-
 		// open a new stream
 		stream, err := openStream(ctx, thisNode, p, PROTOCOL_MST)
 		if err != nil {
@@ -170,6 +188,8 @@ func sendMaster(ctx context.Context, thisNode host.Host, m Message) {
 			// sleep for 1 second to allow the message to be processed
 			time.Sleep(1 * time.Second)
 		}
+
+		
 	}
 }
 
@@ -339,4 +359,73 @@ func sendAddressToMaster(ctx context.Context, thisNode host.Host, letter string)
 	}
 
 	return nil
+}
+
+func randomInt(min, max int) int {
+	return rand.Intn(max-min+1) + min
+}
+
+func selectByzantines(ctx context.Context, thisNode host.Host, topology *Topology) {
+	// Read MAX_BYZANTINES from config file
+	readMaxByzantines(BYZANTINE_CONFIG, &MAX_BYZANTINES)
+	if MAX_BYZANTINES == 0 {
+		fmt.Println("No byzantine nodes selected (MAX_BYZANTINES = 0)")
+		return
+	}
+	// Get node addresses directly from peers, not from topology
+	var nodes []peer.ID
+	for _, peerID := range thisNode.Network().Peers() {
+		addr := peerID
+		nodes = append(nodes, addr)
+	}
+	if MAX_BYZANTINES >= len(nodes) {
+		fmt.Printf("MAX_BYZANTINES (%d) is greater than or equal to the number of nodes (%d). All nodes will be byzantine.\n", MAX_BYZANTINES, len(nodes))
+	}
+	selected := make(map[peer.ID]bool)
+	for len(selected) < MAX_BYZANTINES && len(selected) < len(nodes) {
+		n := nodes[randomInt(0, len(nodes)-1)]
+		selected[n] = true
+	}
+
+	// Send a message to the selected nodes to become byzantine
+	for p := range selected {
+		timestamp := time.Now().Unix()
+		hasher := sha1.New()
+		hasher.Write([]byte(fmt.Sprintf("%d", timestamp)))
+		msgid := fmt.Sprintf("%x", hasher.Sum(nil))
+		var neighbourhood []string
+		var visitedSet []string
+		var m Message = 
+		Message {
+			ID: msgid,
+			Type: TYPE_MASTER,
+			Sender: getNodeAddress(thisNode, ADDR_DEFAULT),
+			Source: getNodeAddress(thisNode, ADDR_DEFAULT),
+			Target: p.String(),
+			Content: cmd_byzantine,
+			Neighbourhood: neighbourhood,
+			Path: visitedSet,
+		}
+		dataBytes, err := json.Marshal(m)
+		if err != nil {
+			printError(err)
+		}
+		msg := string(dataBytes)
+		msg += "\n"
+
+		stream, err := openStream(ctx, thisNode, p, PROTOCOL_MST)
+		if err != nil || stream == nil {
+			printError(err)
+			continue
+		}
+		defer stream.Close()
+
+		// Write the message on the stream
+		_, err = stream.Write([]byte(msg))
+		if err != nil {
+			printError(err)
+		}
+
+		fmt.Printf("Node %s selected as byzantine\n", addressToPrint(p.String(), NODE_PRINTLAST))
+	}
 }

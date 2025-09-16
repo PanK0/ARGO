@@ -78,6 +78,7 @@ const (
 	mst_log			= "LOG"
 	mst_top			= "SENDTOP"
 	mst_printprot	= "PROTOCOLS"
+	mst_byzantine	= "BYZ"
 	mst_reset		= "RESET"
 	
 	// Mode in which some commands are called
@@ -104,7 +105,7 @@ const (
 	
 	
 	start_automatic	= "auto"			// Start the network automatically
-	topology_path 	= "../config/10nodes_5connected.csv"	// Path to the topology file
+	topology_path 	= "../config/topology.csv"	// Path to the topology file
 
 	// Colors for fancy terminal printing
 	RED		= "\x1b[31m"

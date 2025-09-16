@@ -36,10 +36,16 @@ def create_event_table(log_entries):
 
 # Function to save logs to Excel and CSV
 def save_to_files(event_table, full_log, excel_output="log_output.xlsx", csv_output="log_output.csv"):
+    # Save event_table only if it has a manageable number of columns
+    max_excel_columns = 16384
     with pd.ExcelWriter(excel_output) as writer:
-        event_table.to_excel(writer, sheet_name="Event Table")
+        if event_table.shape[1] <= max_excel_columns:
+            event_table.to_excel(writer, sheet_name="Event Table")
+        else:
+            print(f"Event Table NOT saved to Excel: too many columns ({event_table.shape[1]})")
         full_log.to_excel(writer, sheet_name="Full Log", index=False)
-    
+    # Always save both as CSV (no column limit)
+    event_table.to_csv("event_table.csv")
     full_log.to_csv(csv_output, index=False)
     print(f"Logs saved to {excel_output} and {csv_output}")
 

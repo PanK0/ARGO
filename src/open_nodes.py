@@ -10,6 +10,7 @@ nodes6 = ["A", "B", "C", "D", "E", "F"]
 nodes8 = ["A", "B", "C", "D", "E", "F", "G", "W"]
 nodes9 = ["A", "B", "C", "D", "E", "F", "X", "Y", "Z"]
 nodes10 = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "W"]
+nodes20 = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q', 'R', 'S', 'T']
 
 def open_terminals(n_shells, command, automod=None, address=None):
     """
@@ -32,6 +33,8 @@ def open_terminals(n_shells, command, automod=None, address=None):
         nodes_l = nodes9
     elif n_shells == 10:
         nodes_l = nodes10
+    elif n_shells == 20:
+        nodes_l = nodes20
     else:
         print("Error: n_shells must be 4 or 8 when using automod.")
         sys.exit(1)

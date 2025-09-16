@@ -249,7 +249,8 @@ By now, from master it is possible to command all nodes at once:
 > -master DJP : nodes print their Disjoint Paths Solution computed in respect of other nodes
 > -master LOG : master requires the *.log* file from other nodes, that respond with the file. Then master saves the file at *ARGO/logs/r_NODEADDRESS.log*
 > -master TOP : master sends the updated topology to all the nodes. Nodes will replace their *topology.csv* file with the one sent by the master
-> -master RESET : master resets all the data structures (received messages, delivered messages, disjoint paths, topology) of the nodes
+> -master RESET : master resets all the data structures (received messages, delivered messages, disjoint paths, topology) of the nodes and also the byzantine status
+> -master BYZ : master selects ```MAX_BYZANTINES``` random processes among its peers and makes them byzantines
 > -master DISCONNECT : master disconnects from the nodes
 ```
 **TO DO** : implement a very well functioning version

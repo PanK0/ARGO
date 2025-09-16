@@ -316,6 +316,8 @@ func manageConsoleInput(ctx context.Context, h host.Host,
 				} else if inputData_words[idx+1] == mst_top {
 					master_message.Type = mst_top
 					sendTopology(ctx, h, master_message)
+				} else if inputData_words[idx+1] == mst_byzantine {
+					selectByzantines(ctx, h, topology)
 				} else {
 					master_message.Content = inputData_words[idx+1]
 					sendMaster(ctx, h, master_message)

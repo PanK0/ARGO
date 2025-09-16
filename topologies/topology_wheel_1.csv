@@ -1,0 +1,9 @@
+NODE,NEIGHBOURS,
+A,B,W
+B,A,C
+C,B,D
+D,C,E
+E,D,F
+F,E,G
+G,F,W
+W,G,A

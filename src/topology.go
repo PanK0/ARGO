@@ -190,6 +190,15 @@ func (ctop CTop) loadNeigh(graph *Graph, thisNode string) {
 	ctop.tuples[thisNode] = top.tuples[thisNode]
 }
 
+// Get all nodes in the cTop
+func (ctop CTop) GetAllNodes() []string {
+	nodes := make([]string, 0, len(ctop.tuples))
+	for node := range ctop.tuples {
+		nodes = append(nodes, node)
+	}
+	return nodes
+}
+
 
 
 /*
