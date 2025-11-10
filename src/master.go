@@ -185,8 +185,8 @@ func sendMaster(ctx context.Context, thisNode host.Host, m Message) {
 		}
 
 		if m.Content == mst_crc_exp {
-			// sleep for 1 second to allow the message to be processed
-			time.Sleep(1 * time.Second)
+			// sleep for 1.5 seconds to allow the message to be processed
+			time.Sleep(1500 * time.Millisecond)
 		}
 
 		

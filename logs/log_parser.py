@@ -1,4 +1,5 @@
 import shutil
+import string
 import pandas as pd
 import re
 import glob
@@ -6,6 +7,13 @@ import sys
 import os
 import matplotlib.pyplot as plt
 import matplotlib.dates as mdates
+import glob
+
+csv_files = glob.glob("../config/*.csv")
+if not csv_files:
+    print("No CSV file found in ../config/")
+    sys.exit()
+config_csv_path = csv_files[0]  # Take the first CSV file found
 
 # Function to parse log files and extract timestamps, node IDs, and events
 def parse_logs(log_files):
@@ -39,10 +47,12 @@ def save_to_files(event_table, full_log, excel_output="log_output.xlsx", csv_out
     # Save event_table only if it has a manageable number of columns
     max_excel_columns = 16384
     with pd.ExcelWriter(excel_output) as writer:
+        '''
         if event_table.shape[1] <= max_excel_columns:
             event_table.to_excel(writer, sheet_name="Event Table")
         else:
             print(f"Event Table NOT saved to Excel: too many columns ({event_table.shape[1]})")
+        '''
         full_log.to_excel(writer, sheet_name="Full Log", index=False)
     # Always save both as CSV (no column limit)
     event_table.to_csv("event_table.csv")
@@ -165,6 +175,57 @@ def update_log_output_with_node_letters():
 
     print("log_output.csv updated with node letters.")
 
+def convert_topology_and_mark_byzantines(config_csv_path=config_csv_path, log_xlsx_path="log_output.xlsx"):
+    # 1. Read the topology CSV (adjacency list)
+    topo_df = pd.read_csv(config_csv_path, header=0)
+    # Flatten all node addresses in the first column
+    node_addresses = topo_df.iloc[:, 0].dropna().unique().tolist()
+
+    # 2. Read the "Full Log" sheet and find byzantine nodes
+    log_df = pd.read_excel(log_xlsx_path, sheet_name="Full Log", engine="openpyxl")
+    byz_nodes = set()
+    for event, node in zip(log_df["Event"], log_df["Node"]):
+        match = re.match(r"byzantine - Node (\w{5}) is now a byzantine", event)
+        if match:
+            byz_nodes.add(match.group(1))
+
+    # 3. Map node addresses to letters, mark byzantines as lowercase
+    letter_map = {}
+    letters = list(string.ascii_uppercase)
+    for i, addr in enumerate(node_addresses):
+        node_id = addr[-5:]
+        if node_id in byz_nodes:
+            letter_map[addr] = letters[i].lower()
+        else:
+            letter_map[addr] = letters[i]
+
+    # 4. Rewrite topology with letters
+    new_topo = []
+    for _, row in topo_df.iterrows():
+        node_addr = row.iloc[0]
+        neighbours = [n for n in row.iloc[1:] if pd.notnull(n)]
+        node_letter = letter_map.get(node_addr, node_addr)
+        neighbour_letters = [letter_map.get(n, n) for n in neighbours]
+        new_topo.append([node_letter] + neighbour_letters)
+
+    # 5. Prepare original topology with only last 5 chars for each node
+    original_topo = []
+    for _, row in topo_df.iterrows():
+        node_addr = row.iloc[0]
+        neighbours = [n for n in row.iloc[1:] if pd.notnull(n)]
+        node_id = node_addr[-5:] if isinstance(node_addr, str) else node_addr
+        neighbour_ids = [n[-5:] if isinstance(n, str) else n for n in neighbours]
+        original_topo.append([node_id] + neighbour_ids)
+
+    # 6. Combine: modified topology, empty row, original topology (last 5 chars)
+    combined_topo = new_topo + [[""] * topo_df.shape[1]] + original_topo
+
+    # Save to the same .xlsx file in a new sheet "topology"
+    combined_topo_df = pd.DataFrame(combined_topo)
+    with pd.ExcelWriter(log_xlsx_path, engine="openpyxl", mode="a", if_sheet_exists="replace") as writer:
+        combined_topo_df.to_excel(writer, sheet_name="topology", header=False, index=False)
+    print(f"Topology with letters/byzantines and original (last 5 chars) saved to '{log_xlsx_path}' in sheet")
+
 # Main execution
 if __name__ == "__main__":
 
@@ -192,6 +253,9 @@ if __name__ == "__main__":
 
         # Update log output with node letters
         update_log_output_with_node_letters()
+
+        # Write topology
+        convert_topology_and_mark_byzantines()
 
         # Plot event timeline
         # plot_event_timeline(full_log)

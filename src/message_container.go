@@ -282,6 +282,7 @@ func (mc *MessageContainer) GetDisjointPathsBrute(msg_id string) [][]string {
     // Then (internal cycle), in each subset, a check for the disjoint paths in that subset is done and the longest candidate is saved
     // This costs O(2^n) iterations -> 1<<n = 2^n
     for mask := 1; mask < (1 << n); mask++ {
+        //fmt.Printf("Iteration %d/%d\n", mask, (1<<n)-1)
         used := make(map[string]bool)
         var candidate [][]string
         ok := true
